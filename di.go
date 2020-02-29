@@ -31,14 +31,25 @@ Listen history: POST /_papi/v1/di/listen_history
 Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
 Skip track: https://www.di.fm/_papi/v1/di/skip_events
 */
+var ctrls = make(chan int)
 var done = make(chan bool)
 var chanList *tview.List
 var nowPlaying *nowPlayingView
 var app *tview.Application
+var paused bool
 var token string
 var speakerInitialized bool
-var audioStream *beep.Ctrl
+var audioStream beep.StreamSeekCloser
 var currentChannel = &channelItem{Name: "N/A"}
+
+const (
+	// CTRLPAUSE pauses playback
+	CTRLPAUSE = iota
+	// CTRLRESUME resumes playback
+	CTRLRESUME
+	// CTRLPLAY begins playback
+	CTRLPLAY
+)
 
 func init() {
 	viper.SetConfigName("config")
@@ -71,21 +82,8 @@ func init() {
 			if current > 0 {
 				chanList.SetCurrentItem(chanList.GetCurrentItem() - 1)
 			}
-		case 'p': // pause
-			speaker.Lock()
-			// This is a very crude pause implementation. It's crude because ideally we would continue streaming bytes off the
-			// response buffer while a stream is paused, and optionally write them out to /tmp instead of consuming valuable
-			// RAM. However, what we're doing instead is terminating the stream and restarting it when the user resumes
-			// playback.
-			wasPaused := audioStream.Paused == true
-
-			audioStream.Paused = !audioStream.Paused
-
-			if wasPaused { //unpaused
-				go func() { playChannel(currentChannel) }()
-			}
-
-			speaker.Unlock()
+		case 'p': // pause/resume
+			ctrls <- CTRLPAUSE
 		}
 
 		return event
@@ -94,6 +92,7 @@ func init() {
 
 func main() {
 	auth()
+	controlListener()
 	drawUI()
 }
 
@@ -186,12 +185,41 @@ func createChannelList() *tview.List {
 					nowPlaying.setChannel(&chn)
 				})
 
-				playChannel(&chn)
+				currentChannel = &chn
+				ctrls <- CTRLPLAY
 			}()
 		})
 	}
 
 	return list
+}
+
+func controlListener() {
+	go func() {
+		for {
+			switch <-ctrls {
+			case CTRLPAUSE:
+				// nothing to do if nothing has been streamed
+				if audioStream == nil {
+					continue
+				}
+
+				audioStream.Close()
+				if paused {
+					playChannel(currentChannel)
+					paused = false
+				} else {
+					paused = true
+				}
+			case CTRLPLAY, CTRLRESUME:
+				if audioStream != nil {
+					audioStream.Close()
+				}
+
+				playChannel(currentChannel)
+			}
+		}
+	}()
 }
 
 // stream streams the provided URL using the given di.fm premium token
@@ -206,42 +234,37 @@ func stream(url string) {
 		os.Exit(1)
 	}
 
-	defer resp.Body.Close()
-	streamer, format, err := mp3.Decode(resp.Body)
+	var format beep.Format
+	audioStream, format, err = mp3.Decode(resp.Body)
 	if err != nil {
 		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
 		log.Println("unable to stream channel:", resp.StatusCode)
 		os.Exit(1)
 	}
 
-	defer streamer.Close()
-
 	if !speakerInitialized {
 		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 	}
 
-	audioStream = &beep.Ctrl{Streamer: streamer, Paused: false}
-	speaker.Play(beep.Seq(audioStream, beep.Callback(func() {
-		done <- true
-	})))
-
-	<-done
+	speaker.Play(audioStream)
 }
 
 func playChannel(chn *channelItem) {
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", chn.Playlist, nil)
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
+	go func() {
+		client := &http.Client{}
+		req, _ := http.NewRequest("GET", chn.Playlist, nil)
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if streamURL, ok := getStreamURL(body); ok {
-		currentChannel = chn
-		stream(streamURL)
-	}
+		body, err := ioutil.ReadAll(resp.Body)
+		if streamURL, ok := getStreamURL(body); ok {
+			currentChannel = chn
+			stream(streamURL)
+		}
+	}()
 }
 
 // listChannels lists all premium MP3 channels

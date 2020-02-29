@@ -11,8 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/acaloiaro/dicli/context"
+
 	"github.com/acaloiaro/dicli/components"
 	"github.com/acaloiaro/dicli/config"
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
 	ini "gopkg.in/ini.v1"
 )
 
@@ -48,6 +52,20 @@ func Authenticate(username, password string) (token string) {
 	return
 }
 
+// GetStreamURL extracts a playlist's stream URL from raw INI bytes (pls file)
+func GetStreamURL(data []byte) (streamURL string, ok bool) {
+	cfg, err := ini.Load(data)
+	if err != nil {
+		fmt.Printf("playlist file parsing failed : %v\n", err.Error())
+		return
+	}
+
+	streamURL = cfg.Section("playlist").Key("File1").String()
+	ok = streamURL != ""
+
+	return
+}
+
 // ListChannels lists all premium MP3 channels
 func ListChannels() (channels []components.ChannelItem) {
 	client := &http.Client{}
@@ -73,16 +91,24 @@ func ListChannels() (channels []components.ChannelItem) {
 	return
 }
 
-// GetStreamURL extracts a playlist's stream URL from raw INI bytes (pls file)
-func GetStreamURL(data []byte) (streamURL string, ok bool) {
-	cfg, err := ini.Load(data)
+// Stream streams the provided URL using the given di.fm premium token
+func Stream(url string, ctx *context.AppContext) (format beep.Format) {
+	client := &http.Client{}
+	u := fmt.Sprintf("%s?%s", url, config.GetToken())
+	req, _ := http.NewRequest("GET", u, nil)
+	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("playlist file parsing failed : %v\n", err.Error())
-		return
+		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
+		log.Println("unable to stream channel", err.Error())
+		os.Exit(1)
 	}
 
-	streamURL = cfg.Section("playlist").Key("File1").String()
-	ok = streamURL != ""
+	ctx.AudioStream, format, err = mp3.Decode(resp.Body)
+	if err != nil {
+		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
+		log.Println("unable to stream channel:", resp.StatusCode)
+		os.Exit(1)
+	}
 
 	return
 }

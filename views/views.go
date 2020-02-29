@@ -29,10 +29,15 @@ type NowPlayingView struct {
 }
 
 func newNowPlaying(chn *components.ChannelItem) *NowPlayingView {
-	return &NowPlayingView{
+	np := &NowPlayingView{
 		Box:     tview.NewBox(),
 		channel: chn,
 	}
+
+	np.SetTitle(" Now Playing ")
+	np.SetBorder(true)
+
+	return np
 }
 
 // Draw draws this primitive onto the screen.

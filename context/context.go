@@ -7,9 +7,11 @@ import (
 )
 
 func CreateAppContext() *AppContext {
-	return &AppContext{
+	ctx := &AppContext{
 		View: views.CreateAppView(),
 	}
+
+	return ctx
 }
 
 type AppContext struct {

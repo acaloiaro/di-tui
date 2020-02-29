@@ -31,25 +31,33 @@ Listen history: POST /_papi/v1/di/listen_history
 Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
 Skip track: https://www.di.fm/_papi/v1/di/skip_events
 */
-var ctrls = make(chan int)
-var done = make(chan bool)
-var chanList *tview.List
-var nowPlaying *nowPlayingView
-var app *tview.Application
-var paused bool
-var token string
-var speakerInitialized bool
-var audioStream beep.StreamSeekCloser
-var currentChannel = &channelItem{Name: "N/A"}
+var ctx appContext
 
-const (
-	// CTRLPAUSE pauses playback
-	CTRLPAUSE = iota
-	// CTRLRESUME resumes playback
-	CTRLRESUME
-	// CTRLPLAY begins playback
-	CTRLPLAY
-)
+func createAppContext() appContext {
+	return appContext{
+		view: appView{
+			app:         tview.NewApplication(),
+			channelList: createChannelList(),
+			nowPlaying:  newNowPlaying(&channelItem{Name: "N/A"}),
+		},
+	}
+}
+
+type appContext struct {
+	audioStream        beep.StreamSeekCloser
+	controls           chan (int)
+	currentChannel     *channelItem
+	difmToken          string
+	isPlaying          bool
+	speakerInitialized bool
+	view               appView
+}
+
+type appView struct {
+	app         *tview.Application
+	channelList *tview.List
+	nowPlaying  *nowPlayingView
+}
 
 func init() {
 	viper.SetConfigName("config")
@@ -64,26 +72,24 @@ func init() {
 }
 
 func init() {
-	app = tview.NewApplication()
-	chanList = createChannelList()
-	nowPlaying = newNowPlaying(currentChannel)
-	nowPlaying.
+
+	ctx = createAppContext()
+	ctx.view.nowPlaying.
 		SetBorder(true).
 		SetTitle(" Now Playing ")
-
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	ctx.view.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 'q':
-			app.Stop()
+			ctx.view.app.Stop()
 		case 'j': //scroll down
-			chanList.SetCurrentItem(chanList.GetCurrentItem() + 1)
+			ctx.view.channelList.SetCurrentItem(ctx.view.channelList.GetCurrentItem() + 1)
 		case 'k': //scroll up
-			current := chanList.GetCurrentItem()
+			current := ctx.view.channelList.GetCurrentItem()
 			if current > 0 {
-				chanList.SetCurrentItem(chanList.GetCurrentItem() - 1)
+				ctx.view.channelList.SetCurrentItem(current - 1)
 			}
 		case 'p': // pause/resume
-			ctrls <- CTRLPAUSE
+			togglePause()
 		}
 
 		return event
@@ -92,8 +98,7 @@ func init() {
 
 func main() {
 	auth()
-	controlListener()
-	drawUI()
+	run()
 }
 
 func auth() {
@@ -109,10 +114,29 @@ func auth() {
 		authenticate(username, password)
 	}
 
-	token = viper.GetString("token")
+	token := viper.GetString("token")
 	if token == "" {
 		fmt.Println("First, authenticate with by running: dicli -username USER -password PASSWORD")
 		os.Exit(1)
+	}
+
+	ctx.difmToken = token
+}
+
+func run() {
+
+	flex := tview.NewFlex()
+	flex.
+		AddItem(ctx.view.channelList, 0, 1, false).
+		AddItem(ctx.view.nowPlaying, 0, 2, false)
+
+	err := ctx.view.app.
+		SetRoot(flex, true).
+		SetFocus(ctx.view.channelList).
+		Run()
+
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -154,21 +178,6 @@ func writeConfig() {
 	viper.WriteConfig()
 }
 
-func drawUI() {
-
-	flex := tview.NewFlex()
-	flex.
-		AddItem(chanList, 0, 1, false).
-		AddItem(nowPlaying, 0, 2, false)
-
-	if err := app.
-		SetRoot(flex, true).
-		SetFocus(chanList).
-		Run(); err != nil {
-		panic(err)
-	}
-}
-
 func createChannelList() *tview.List {
 	channels := list()
 	list := tview.NewList()
@@ -181,12 +190,7 @@ func createChannelList() *tview.List {
 		list.AddItem(chn.Name, "", 0, func() {
 			go func() {
 				chn := channels[list.GetCurrentItem()]
-				app.QueueUpdateDraw(func() {
-					nowPlaying.setChannel(&chn)
-				})
-
-				currentChannel = &chn
-				ctrls <- CTRLPLAY
+				playChannel(&chn)
 			}()
 		})
 	}
@@ -194,38 +198,26 @@ func createChannelList() *tview.List {
 	return list
 }
 
-func controlListener() {
-	go func() {
-		for {
-			switch <-ctrls {
-			case CTRLPAUSE:
-				// nothing to do if nothing has been streamed
-				if audioStream == nil {
-					continue
-				}
+// togglePause pauses/unpauses audio when a channel is playing
+func togglePause() {
 
-				audioStream.Close()
-				if paused {
-					playChannel(currentChannel)
-					paused = false
-				} else {
-					paused = true
-				}
-			case CTRLPLAY, CTRLRESUME:
-				if audioStream != nil {
-					audioStream.Close()
-				}
+	// nothing to do if nothing has been streamed
+	if ctx.audioStream == nil {
+		return
+	}
 
-				playChannel(currentChannel)
-			}
-		}
-	}()
+	ctx.audioStream.Close()
+	if !ctx.isPlaying {
+		playChannel(ctx.currentChannel)
+	}
+
+	ctx.isPlaying = !ctx.isPlaying
 }
 
 // stream streams the provided URL using the given di.fm premium token
 func stream(url string) {
 	client := &http.Client{}
-	u := fmt.Sprintf("%s?%s", url, token)
+	u := fmt.Sprintf("%s?%s", url, ctx.difmToken)
 	req, _ := http.NewRequest("GET", u, nil)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -235,21 +227,32 @@ func stream(url string) {
 	}
 
 	var format beep.Format
-	audioStream, format, err = mp3.Decode(resp.Body)
+	ctx.audioStream, format, err = mp3.Decode(resp.Body)
 	if err != nil {
 		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
 		log.Println("unable to stream channel:", resp.StatusCode)
 		os.Exit(1)
 	}
 
-	if !speakerInitialized {
+	if !ctx.speakerInitialized {
 		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 	}
 
-	speaker.Play(audioStream)
+	speaker.Play(ctx.audioStream)
+	ctx.isPlaying = true
 }
 
+// playChannel begins streaming the provided channel after fetching its playlist
+// If a channel is already playing, the old stream is stopped first, clearing up resources.
+// This function is asynchronous and creates a single streaming resource: he audio stream held by the application
+// context. To clean up resources created by this function, Close() the application's audio stream.
 func playChannel(chn *channelItem) {
+
+	// when other channels are already playing, close their stream before playing a new one
+	if ctx.audioStream != nil {
+		ctx.audioStream.Close()
+	}
+
 	go func() {
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", chn.Playlist, nil)
@@ -261,10 +264,17 @@ func playChannel(chn *channelItem) {
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if streamURL, ok := getStreamURL(body); ok {
-			currentChannel = chn
 			stream(streamURL)
+			setCurrentChannel(chn)
 		}
 	}()
+}
+
+func setCurrentChannel(chn *channelItem) {
+	ctx.currentChannel = chn
+	ctx.view.app.QueueUpdateDraw(func() {
+		ctx.view.nowPlaying.setChannel(chn)
+	})
 }
 
 // listChannels lists all premium MP3 channels

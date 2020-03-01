@@ -8,6 +8,8 @@ Currently this is very crude proof of concept that was written over the course o
 
 # Install
 
+This app has been tested on Linux and Mac, but not Windows. However, it should also build on Windows. 
+
 ## With `go get`
 `go get -u github.com/acaloiaro/di-tui`
 

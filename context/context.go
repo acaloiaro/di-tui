@@ -6,14 +6,14 @@ import (
 	"github.com/faiface/beep"
 )
 
-func CreateAppContext() *AppContext {
-	ctx := &AppContext{
-		View: views.CreateAppView(),
-	}
+// CreateAppContext creates the application context
+func CreateAppContext(view *views.AppView) *AppContext {
+	ctx := &AppContext{View: view}
 
 	return ctx
 }
 
+// AppContext is a shared context to be shared across the application
 type AppContext struct {
 	AudioStream        beep.StreamSeekCloser
 	CurrentChannel     *components.ChannelItem

@@ -8,6 +8,7 @@ import (
 	"github.com/acaloiaro/dicli/config"
 	"github.com/acaloiaro/dicli/context"
 	"github.com/acaloiaro/dicli/difm"
+	"github.com/acaloiaro/dicli/views"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -15,18 +16,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-/* di.fm API
-Track details: http://www.di.fm/tracks/<track id>
-Listen history: POST /_papi/v1/di/listen_history
-       Payload: {track_id: 2918701, playlist_id: 63675}
-Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
-Skip track: https://www.di.fm/_papi/v1/di/skip_events
-*/
 var ctx *context.AppContext
-
-func init() {
-
-}
 
 func main() {
 	pflag.String("username", "", "your di.fm username")
@@ -48,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx = context.CreateAppContext()
+	ctx = context.CreateAppContext(views.CreateAppView())
 	ctx.DifmToken = token
 
 	run()

@@ -51,7 +51,6 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if streamURL, ok := difm.GetStreamURL(body); ok {
 			format := difm.Stream(streamURL, ctx)
-			setCurrentChannel(chn, ctx)
 
 			if !ctx.SpeakerInitialized {
 				speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
@@ -59,13 +58,19 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
 			speaker.Play(ctx.AudioStream)
 			ctx.IsPlaying = true
+
+			setNowPlaying(chn, ctx)
 		}
 	}()
 }
 
-func setCurrentChannel(chn *components.ChannelItem, ctx *context.AppContext) {
+func setNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	ctx.CurrentChannel = chn
+	cp := difm.GetCurrentlyPlaying(ctx)
 	ctx.View.App.QueueUpdateDraw(func() {
-		ctx.View.NowPlaying.SetChannel(chn)
+		ctx.View.NowPlaying.Channel = chn
+		track := cp.Track
+		ctx.View.NowPlaying.Artist = track.DisplayArtist
+		ctx.View.NowPlaying.Track = track.DisplayTitle
 	})
 }

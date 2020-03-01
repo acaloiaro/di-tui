@@ -20,6 +20,7 @@ func init() {
 	}
 }
 
+// SaveToken persists the di.fm API token to disk
 func SaveToken(token string) {
 	viper.Set("username", "")
 	viper.Set("password", "")
@@ -28,6 +29,7 @@ func SaveToken(token string) {
 	saveConfig()
 }
 
+// GetToken returns the di.fm API token if one is available
 func GetToken() (token string) {
 	return viper.GetString("token")
 }
@@ -47,10 +49,9 @@ func configFilePath() string {
 			home = os.Getenv("USERPROFILE")
 		}
 		return home
-	} else {
-		home = os.Getenv("HOME")
 	}
 
+	home = os.Getenv("HOME")
 	dir := fmt.Sprintf("%s/.config/dicli/", home)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

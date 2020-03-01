@@ -25,13 +25,15 @@ func CreateAppView() *AppView {
 // NowPlayingView is a custom view for dispalying the currently playing channel
 type NowPlayingView struct {
 	*tview.Box
-	channel *components.ChannelItem
+	Channel *components.ChannelItem
+	Artist  string
+	Track   string
 }
 
 func newNowPlaying(chn *components.ChannelItem) *NowPlayingView {
 	np := &NowPlayingView{
 		Box:     tview.NewBox(),
-		channel: chn,
+		Channel: chn,
 	}
 
 	np.SetTitle(" Now Playing ")
@@ -45,12 +47,15 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	n.Box.Draw(screen)
 	x, y, width, _ := n.GetInnerRect()
 
-	line := fmt.Sprintf(`%s[white]  %s`, "Channel:", n.channel.Name)
+	line := fmt.Sprintf("%s[white]  %s", "Channel:", n.Channel.Name)
 	tview.Print(screen, line, x, y, width, tview.AlignLeft, tcell.ColorYellow)
-}
 
-func (n *NowPlayingView) SetChannel(chn *components.ChannelItem) {
-	n.channel = chn
+	line = fmt.Sprintf("%s[white]   %s", "Artist:", n.Artist)
+	tview.Print(screen, line, x, y+1, width, tview.AlignLeft, tcell.ColorYellow)
+
+	line = fmt.Sprintf("%s[white]    %s", "Track:", n.Track)
+	tview.Print(screen, line, x, y+2, width, tview.AlignLeft, tcell.ColorYellow)
+
 }
 
 func createChannelList() *tview.List {

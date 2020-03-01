@@ -20,6 +20,15 @@ import (
 	ini "gopkg.in/ini.v1"
 )
 
+/* di.fm API
+Track details: http://www.di.fm/tracks/<track id>
+Listen history: POST /_papi/v1/di/listen_history
+       Payload: {track_id: 2918701, playlist_id: 63675}
+Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
+Skip track: https://www.di.fm/_papi/v1/di/skip_events
+*/
+
+// Authenticate authenticates to the di.fm API with username and password, returning the listen token
 func Authenticate(username, password string) (token string) {
 	authURL := "https://api.audioaddict.com/v1/di/members/authenticate"
 	client := &http.Client{}
@@ -62,6 +71,35 @@ func GetStreamURL(data []byte) (streamURL string, ok bool) {
 
 	streamURL = cfg.Section("playlist").Key("File1").String()
 	ok = streamURL != ""
+
+	return
+}
+
+// GetCurrentlyPlaying fetches the list of all currently playing tracks site-side
+func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.CurrentlyPlaying) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", "https://www.di.fm/_papi/v1/di/currently_playing", nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
+		log.Println("unable to list channels", err.Error())
+		os.Exit(1)
+	}
+
+	var currentlyPlayingStations []components.CurrentlyPlaying
+	json.Unmarshal(body, &currentlyPlayingStations)
+
+	for _, cp := range currentlyPlayingStations {
+		if cp.ChannelID == ctx.CurrentChannel.ID {
+			return cp
+		}
+	}
 
 	return
 }

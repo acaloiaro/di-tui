@@ -12,25 +12,9 @@ import (
 	"github.com/faiface/beep/speaker"
 )
 
-// TogglePause pauses/unpauses audio when a channel is playing
-func TogglePause(ctx *context.AppContext) {
-
-	// nothing to do if nothing has been streamed
-	if ctx.AudioStream == nil {
-		return
-	}
-
-	ctx.AudioStream.Close()
-	if !ctx.IsPlaying {
-		PlayChannel(ctx.CurrentChannel, ctx)
-	}
-
-	ctx.IsPlaying = !ctx.IsPlaying
-}
-
 // PlayChannel begins streaming the provided channel after fetching its playlist
 // If a channel is already playing, the old stream is stopped first, clearing up resources.
-// This function is asynchronous and creates a single streaming resource: he audio stream held by the application
+// This function is *asynchronous* and creates a single streaming resource: the audio stream held by the application
 // context. To clean up resources created by this function, Close() the application's audio stream.
 func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
@@ -59,14 +43,31 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 			speaker.Play(ctx.AudioStream)
 			ctx.IsPlaying = true
 
-			setNowPlaying(chn, ctx)
+			updateNowPlaying(chn, ctx)
 		}
 	}()
 }
 
-func setNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
+// TogglePause pauses/unpauses audio when a channel is playing
+func TogglePause(ctx *context.AppContext) {
+
+	// nothing to do if nothing has been streamed
+	if ctx.AudioStream == nil {
+		return
+	}
+
+	ctx.AudioStream.Close()
+	if !ctx.IsPlaying {
+		PlayChannel(ctx.CurrentChannel, ctx)
+	}
+
+	ctx.IsPlaying = !ctx.IsPlaying
+}
+
+func updateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	ctx.CurrentChannel = chn
 	cp := difm.GetCurrentlyPlaying(ctx)
+
 	ctx.View.App.QueueUpdateDraw(func() {
 		ctx.View.NowPlaying.Channel = chn
 		track := cp.Track

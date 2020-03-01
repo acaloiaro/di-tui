@@ -9,9 +9,9 @@ import (
 	"github.com/acaloiaro/dicli/context"
 	"github.com/acaloiaro/dicli/difm"
 	"github.com/acaloiaro/dicli/views"
+	"github.com/rivo/tview"
 
 	"github.com/gdamore/tcell"
-	"github.com/rivo/tview"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -45,6 +45,37 @@ func main() {
 }
 
 func run() {
+	configureEventHandling()
+	configureUIComponents()
+	layout := buildUILayout()
+
+	err := ctx.View.App.
+		SetRoot(layout, true).
+		SetFocus(ctx.View.ChannelList).
+		Run()
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func buildUILayout() *tview.Flex {
+	main := tview.NewFlex()
+	main.SetDirection(tview.FlexRow)
+
+	flex := tview.NewFlex()
+	flex.
+		AddItem(ctx.View.ChannelList, 0, 1, false).
+		AddItem(ctx.View.NowPlaying, 0, 2, false)
+
+	main.
+		AddItem(flex, 0, 15, false).
+		AddItem(ctx.View.Keybindings, 0, 1, false)
+
+	return main
+}
+
+func configureEventHandling() {
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 'q':
@@ -62,28 +93,27 @@ func run() {
 
 		return event
 	})
+}
 
+func configureUIComponents() {
+
+	// configure the channel list
 	channels := difm.ListChannels()
 	for _, chn := range channels {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
-			go func() {
-				chn := channels[ctx.View.ChannelList.GetCurrentItem()]
-				app.PlayChannel(&chn, ctx)
-			}()
+			chn := channels[ctx.View.ChannelList.GetCurrentItem()]
+			app.PlayChannel(&chn, ctx)
 		})
 	}
 
-	flex := tview.NewFlex()
-	flex.
-		AddItem(ctx.View.ChannelList, 0, 1, false).
-		AddItem(ctx.View.NowPlaying, 0, 2, false)
-
-	err := ctx.View.App.
-		SetRoot(flex, true).
-		SetFocus(ctx.View.ChannelList).
-		Run()
-
-	if err != nil {
-		panic(err)
+	// configure the keybinding view
+	bindings := []views.UIKeybinding{
+		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
+		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
+		views.UIKeybinding{Shortcut: "j", Description: "Scroll Up", Func: func() {}},
+		views.UIKeybinding{Shortcut: "k", Description: "Scroll Down", Func: func() {}},
+		views.UIKeybinding{Shortcut: "Enter", Description: "Play Selected", Func: func() {}},
 	}
+
+	ctx.View.Keybindings.Bindings = bindings
 }

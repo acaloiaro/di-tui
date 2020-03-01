@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
 	github.com/faiface/beep v1.0.2
 	github.com/gdamore/tcell v1.3.0
 	github.com/gizak/termui/v3 v3.1.0

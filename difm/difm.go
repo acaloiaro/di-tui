@@ -15,6 +15,7 @@ import (
 
 	"github.com/acaloiaro/dicli/components"
 	"github.com/acaloiaro/dicli/config"
+	"github.com/bradfitz/iter"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
 	ini "gopkg.in/ini.v1"
@@ -26,6 +27,7 @@ Listen history: POST /_papi/v1/di/listen_history
        Payload: {track_id: 2918701, playlist_id: 63675}
 Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
 Skip track: https://www.di.fm/_papi/v1/di/skip_events
+Favorites: http://listen.di.fm/public3/favorites.pls?<listen key>
 */
 
 // Authenticate authenticates to the di.fm API with username and password, returning the listen token
@@ -123,7 +125,43 @@ func ListChannels() (channels []components.ChannelItem) {
 
 	err = json.Unmarshal(body, &channels)
 	if err != nil {
+		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
 		log.Panicf("unable to fetch channel list: %e", err)
+	}
+
+	return
+}
+
+// ListFavorites lists a user's favorite channels
+func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem) {
+
+	client := &http.Client{}
+	url := fmt.Sprintf("%s?%s", "http://listen.di.fm/public3/favorites.pls", ctx.DifmToken)
+	req, _ := http.NewRequest("GET", url, nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	log.Println(string(body))
+	cfg, err := ini.Load(body)
+	if err != nil {
+		// TODO: show an message in a status UI element of the app
+		fmt.Printf("favorite list parsing failed: %v\n", err.Error())
+		return
+	}
+
+	sec := "playlist"
+	numEntries := cfg.Section(sec).Key("NumberOfEntries").MustInt(0)
+	for i := range iter.N(numEntries) {
+		// di.fm's PLS keys begin at 1
+		k := i + 1
+		favorites = append(favorites, components.FavoriteItem{
+			Name:        cfg.Section(sec).Key(fmt.Sprintf("Title%d", k)).String(),
+			PlaylistURL: cfg.Section(sec).Key(fmt.Sprintf("File%d", k)).String(),
+		})
 	}
 
 	return

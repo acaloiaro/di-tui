@@ -51,7 +51,7 @@ func run() {
 
 	err := ctx.View.App.
 		SetRoot(layout, true).
-		SetFocus(ctx.View.ChannelList).
+		SetFocus(ctx.View.FavoriteList).
 		Run()
 
 	if err != nil {
@@ -63,9 +63,14 @@ func buildUILayout() *tview.Flex {
 	main := tview.NewFlex()
 	main.SetDirection(tview.FlexRow)
 
+	favsAndChannels := tview.NewFlex().
+		AddItem(ctx.View.FavoriteList, 0, 1, false).
+		AddItem(ctx.View.ChannelList, 0, 2, false).
+		SetDirection(tview.FlexRow)
+
 	flex := tview.NewFlex()
 	flex.
-		AddItem(ctx.View.ChannelList, 0, 1, false).
+		AddItem(favsAndChannels, 0, 1, false).
 		AddItem(ctx.View.NowPlaying, 0, 2, false)
 
 	main.
@@ -76,16 +81,19 @@ func buildUILayout() *tview.Flex {
 }
 
 func configureEventHandling() {
+
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		focus := ctx.View.App.GetFocus().(*tview.List)
+
 		switch event.Rune() {
 		case 'q':
 			ctx.View.App.Stop()
 		case 'j': //scroll down
-			ctx.View.ChannelList.SetCurrentItem(ctx.View.ChannelList.GetCurrentItem() + 1)
+			focus.SetCurrentItem(focus.GetCurrentItem() + 1)
 		case 'k': //scroll up
-			current := ctx.View.ChannelList.GetCurrentItem()
+			current := focus.GetCurrentItem()
 			if current > 0 {
-				ctx.View.ChannelList.SetCurrentItem(current - 1)
+				focus.SetCurrentItem(current - 1)
 			}
 		case 'p': // pause/resume
 			app.TogglePause(ctx)
@@ -103,6 +111,20 @@ func configureUIComponents() {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
 			chn := channels[ctx.View.ChannelList.GetCurrentItem()]
 			app.PlayChannel(&chn, ctx)
+		})
+	}
+
+	favorites := difm.ListFavorites(ctx)
+	for _, fav := range favorites {
+		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {
+			f := favorites[ctx.View.FavoriteList.GetCurrentItem()]
+			for _, chn := range channels {
+				// favorites are prefixed with "DI.fm - <CHANNEL NAME>", shave it off before comparing
+				if chn.Name == f.Name[8:len(f.Name)] {
+					app.PlayChannel(&chn, ctx)
+					return
+				}
+			}
 		})
 	}
 

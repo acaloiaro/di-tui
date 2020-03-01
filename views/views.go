@@ -9,10 +9,11 @@ import (
 )
 
 type AppView struct {
-	App         *tview.Application
-	ChannelList *tview.List
-	NowPlaying  *NowPlayingView
-	Keybindings *KeybindingView
+	App          *tview.Application
+	ChannelList  *tview.List
+	FavoriteList *tview.List
+	NowPlaying   *NowPlayingView
+	Keybindings  *KeybindingView
 }
 
 // KeybindingView is a custom view for dispalying the keyboard bindings available to users
@@ -31,10 +32,11 @@ type UIKeybinding struct {
 // CreateAppView creates the primary application view of di-tui
 func CreateAppView() *AppView {
 	return &AppView{
-		App:         tview.NewApplication(),
-		ChannelList: createChannelList(),
-		NowPlaying:  newNowPlaying(&components.ChannelItem{}),
-		Keybindings: createKeybindings(),
+		App:          tview.NewApplication(),
+		ChannelList:  createChannelList(),
+		FavoriteList: createFavoriteList(),
+		NowPlaying:   newNowPlaying(&components.ChannelItem{}),
+		Keybindings:  createKeybindings(),
 	}
 }
 
@@ -63,13 +65,13 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	n.Box.Draw(screen)
 	x, y, width, _ := n.GetInnerRect()
 
-	line := fmt.Sprintf("%s[white]  %s", "Channel:", n.Channel.Name)
+	line := fmt.Sprintf("%s[white] %s", "Channel:", n.Channel.Name)
 	tview.Print(screen, line, x, y, width, tview.AlignLeft, tcell.ColorBlue)
 
-	line = fmt.Sprintf("%s[white]   %s", "Artist:", n.Artist)
+	line = fmt.Sprintf("%s[white]  %s", "Artist:", n.Artist)
 	tview.Print(screen, line, x, y+1, width, tview.AlignLeft, tcell.ColorBlue)
 
-	line = fmt.Sprintf("%s[white]    %s", "Track:", n.Track)
+	line = fmt.Sprintf("%s[white]   %s", "Track:", n.Track)
 	tview.Print(screen, line, x, y+2, width, tview.AlignLeft, tcell.ColorBlue)
 
 }
@@ -93,6 +95,16 @@ func createChannelList() *tview.List {
 		ShowSecondaryText(false).
 		SetBorder(true).
 		SetTitle(" Channels ")
+
+	return list
+}
+
+func createFavoriteList() *tview.List {
+	list := tview.NewList()
+	list.
+		ShowSecondaryText(false).
+		SetBorder(true).
+		SetTitle(" Favorites ")
 
 	return list
 }

@@ -10,6 +10,12 @@ type ChannelItem struct {
 	Playlist string `json:"playlist"`
 }
 
+// FavoriteItem contains a di.fm favorite channel
+type FavoriteItem struct {
+	Name        string
+	PlaylistURL string
+}
+
 // CurrentlyPlaying contains the currently playing metadata for a di.fm channel
 type CurrentlyPlaying struct {
 	ChannelID  int64  `json:"channel_id"`

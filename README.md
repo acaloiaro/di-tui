@@ -8,9 +8,10 @@ Currently this is very crude proof of concept that was written over the course o
 
 # Install
 
+## With `go get`
 `go get -u github.com/acaloiaro/di-tui`
 
-If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zshrc)
+If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zshrc`)
 ```
 echo "export PATH=$PATH:$GOPATH/bin" >> ~/.bashrc
 source ~/.bashrc

@@ -10,6 +10,14 @@ Currently this is very crude proof of concept that was written over the course o
 
 `go get -u github.com/acaloiaro/di-tui`
 
+If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zshrc)
+```
+echo "export PATH=$PATH:$GOPATH/bin" >> ~/.bashrc
+source ~/.bashrc
+```
+
+If your `$GOPATH` is not set, see https://github.com/golang/go/wiki/SettingGOPATH
+
 # Authenticate
 
 `di-tui --username "you@yourdomain.com" --password "your password"`

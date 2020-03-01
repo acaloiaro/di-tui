@@ -1,8 +1,8 @@
 package context
 
 import (
-	"github.com/acaloiaro/dicli/components"
-	"github.com/acaloiaro/dicli/views"
+	"github.com/acaloiaro/di-tui/components"
+	"github.com/acaloiaro/di-tui/views"
 	"github.com/faiface/beep"
 )
 

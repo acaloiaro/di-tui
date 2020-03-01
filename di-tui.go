@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/acaloiaro/dicli/app"
-	"github.com/acaloiaro/dicli/config"
-	"github.com/acaloiaro/dicli/context"
-	"github.com/acaloiaro/dicli/difm"
-	"github.com/acaloiaro/dicli/views"
+	"github.com/acaloiaro/di-tui/app"
+	"github.com/acaloiaro/di-tui/config"
+	"github.com/acaloiaro/di-tui/context"
+	"github.com/acaloiaro/di-tui/difm"
+	"github.com/acaloiaro/di-tui/views"
 	"github.com/rivo/tview"
 
 	"github.com/gdamore/tcell"
@@ -34,7 +35,7 @@ func main() {
 
 	token = config.GetToken()
 	if token == "" {
-		fmt.Println("First, authenticate with by running: dicli --username USER --password PASSWORD")
+		fmt.Println("First, authenticate with by running: di-tui --username USER --password PASSWORD")
 		os.Exit(1)
 	}
 
@@ -70,12 +71,12 @@ func buildUILayout() *tview.Flex {
 
 	flex := tview.NewFlex()
 	flex.
-		AddItem(favsAndChannels, 0, 1, false).
-		AddItem(ctx.View.NowPlaying, 0, 2, false)
+		AddItem(favsAndChannels, 30, 0, false).
+		AddItem(ctx.View.NowPlaying, 0, 4, false)
 
 	main.
-		AddItem(flex, 0, 15, false).
-		AddItem(ctx.View.Keybindings, 0, 1, false)
+		AddItem(flex, 0, 3, false).
+		AddItem(ctx.View.Keybindings, 4, 0, false)
 
 	return main
 }
@@ -86,6 +87,14 @@ func configureEventHandling() {
 		focus := ctx.View.App.GetFocus().(*tview.List)
 
 		switch event.Rune() {
+		case 'c':
+			if focus != ctx.View.ChannelList {
+				ctx.View.App.SetFocus(ctx.View.ChannelList)
+			}
+		case 'f':
+			if focus != ctx.View.FavoriteList {
+				ctx.View.App.SetFocus(ctx.View.FavoriteList)
+			}
 		case 'q':
 			ctx.View.App.Stop()
 		case 'j': //scroll down
@@ -101,6 +110,26 @@ func configureEventHandling() {
 
 		return event
 	})
+
+	// keep 'now playing' up to date second-by-second
+	go func() {
+		c := time.Tick(1 * time.Second)
+		for range c {
+			elapsed := time.Now().Sub(ctx.View.NowPlaying.Track.StartTime)
+
+			// If the current time is past the end of the track, then a new track is playing and the now playing track needs
+			// to be refreshed.
+			if ctx.View.NowPlaying.Track.Duration > 0 && ctx.View.NowPlaying.Track.Duration < elapsed.Seconds() {
+				app.UpdateNowPlaying(ctx.CurrentChannel, ctx)
+			}
+
+			if ctx.CurrentChannel != nil && elapsed.Seconds() > 0 {
+				ctx.View.NowPlaying.Elapsed = elapsed.Seconds()
+			}
+
+			ctx.View.App.QueueUpdateDraw(func() {})
+		}
+	}()
 }
 
 func configureUIComponents() {
@@ -120,6 +149,7 @@ func configureUIComponents() {
 			f := favorites[ctx.View.FavoriteList.GetCurrentItem()]
 			for _, chn := range channels {
 				// favorites are prefixed with "DI.fm - <CHANNEL NAME>", shave it off before comparing
+				// TODO: this feels a bit hacky -- consider doing something else.
 				if chn.Name == f.Name[8:len(f.Name)] {
 					app.PlayChannel(&chn, ctx)
 					return
@@ -131,10 +161,12 @@ func configureUIComponents() {
 	// configure the keybinding view
 	bindings := []views.UIKeybinding{
 		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
-		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
+		views.UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
+		views.UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
 		views.UIKeybinding{Shortcut: "j", Description: "Scroll Up", Func: func() {}},
 		views.UIKeybinding{Shortcut: "k", Description: "Scroll Down", Func: func() {}},
-		views.UIKeybinding{Shortcut: "Enter", Description: "Play Selected", Func: func() {}},
+		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
+		views.UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
 	}
 
 	ctx.View.Keybindings.Bindings = bindings

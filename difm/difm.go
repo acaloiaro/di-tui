@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/acaloiaro/dicli/context"
+	"github.com/acaloiaro/di-tui/context"
 
-	"github.com/acaloiaro/dicli/components"
-	"github.com/acaloiaro/dicli/config"
+	"github.com/acaloiaro/di-tui/components"
+	"github.com/acaloiaro/di-tui/config"
 	"github.com/bradfitz/iter"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
@@ -59,7 +59,6 @@ func Authenticate(username, password string) (token string) {
 	token = res.ListenKey
 	config.SaveToken(token)
 
-	log.Println("Token", res)
 	return
 }
 
@@ -145,7 +144,6 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	log.Println(string(body))
 	cfg, err := ini.Load(body)
 	if err != nil {
 		// TODO: show an message in a status UI element of the app

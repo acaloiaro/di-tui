@@ -11,8 +11,8 @@ import (
 func init() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("$HOME/.config/dicli")
-	viper.AddConfigPath("$HOME/.dicli/")
+	viper.AddConfigPath("$HOME/.config/di-tui")
+	viper.AddConfigPath("$HOME/.di-tui/")
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -52,7 +52,7 @@ func configFilePath() string {
 	}
 
 	home = os.Getenv("HOME")
-	dir := fmt.Sprintf("%s/.config/dicli/", home)
+	dir := fmt.Sprintf("%s/.config/di-tui/", home)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0755)

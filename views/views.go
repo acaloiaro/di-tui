@@ -3,7 +3,7 @@ package views
 import (
 	"fmt"
 
-	"github.com/acaloiaro/dicli/components"
+	"github.com/acaloiaro/di-tui/components"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
@@ -35,7 +35,7 @@ func CreateAppView() *AppView {
 		App:          tview.NewApplication(),
 		ChannelList:  createChannelList(),
 		FavoriteList: createFavoriteList(),
-		NowPlaying:   newNowPlaying(&components.ChannelItem{}),
+		NowPlaying:   newNowPlaying(),
 		Keybindings:  createKeybindings(),
 	}
 }
@@ -44,14 +44,15 @@ func CreateAppView() *AppView {
 type NowPlayingView struct {
 	*tview.Box
 	Channel *components.ChannelItem
-	Artist  string
-	Track   string
+	Track   components.Track
+	Elapsed float64
 }
 
-func newNowPlaying(chn *components.ChannelItem) *NowPlayingView {
+func newNowPlaying() *NowPlayingView {
 	np := &NowPlayingView{
 		Box:     tview.NewBox(),
-		Channel: chn,
+		Channel: &components.ChannelItem{},
+		Elapsed: 0.0,
 	}
 
 	np.SetTitle(" Now Playing ")
@@ -60,7 +61,7 @@ func newNowPlaying(chn *components.ChannelItem) *NowPlayingView {
 	return np
 }
 
-// Draw draws this primitive onto the screen.
+// Draw draws a NowPlayingView onto the scren
 func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	n.Box.Draw(screen)
 	x, y, width, _ := n.GetInnerRect()
@@ -68,24 +69,39 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	line := fmt.Sprintf("%s[white] %s", "Channel:", n.Channel.Name)
 	tview.Print(screen, line, x, y, width, tview.AlignLeft, tcell.ColorBlue)
 
-	line = fmt.Sprintf("%s[white]  %s", "Artist:", n.Artist)
+	line = fmt.Sprintf("%s[white]  %s", "Artist:", n.Track.Artist)
 	tview.Print(screen, line, x, y+1, width, tview.AlignLeft, tcell.ColorBlue)
 
-	line = fmt.Sprintf("%s[white]   %s", "Track:", n.Track)
+	line = fmt.Sprintf("%s[white]   %s", "Track:", n.Track.Title)
 	tview.Print(screen, line, x, y+2, width, tview.AlignLeft, tcell.ColorBlue)
 
+	var minutes, seconds int
+	if n.Elapsed > 0 {
+		minutes = int(n.Elapsed / 60)
+		seconds = int(n.Elapsed) % 60
+	}
+	elapsedStr := fmt.Sprintf("%02d:%02d", minutes, seconds)
+	line = fmt.Sprintf("%s[white] %s", "Elapsed:", elapsedStr)
+	tview.Print(screen, line, x, y+3, width, tview.AlignLeft, tcell.ColorBlue)
 }
 
-// Draw draws this primitive onto the screen.
+// Draw draws the key bindings view on to the screen
 func (n *KeybindingView) Draw(screen tcell.Screen) {
 	n.Box.Draw(screen)
 	x, y, width, _ := n.GetInnerRect()
 
 	previousWidth := 0
-	for _, bnd := range n.Bindings {
+	for j, bnd := range n.Bindings {
 		line := fmt.Sprintf("(%s)[white] %s", bnd.Shortcut, bnd.Description)
 		tview.Print(screen, line, x+previousWidth, y, width, tview.AlignLeft, tcell.ColorBlue)
-		previousWidth += len(bnd.Shortcut) + len(bnd.Description) + 5
+		previousWidth += len(bnd.Shortcut) + len(bnd.Description) + 4
+
+		// virtically separate playback controls from ui controls
+		// yes, this is hacky, but there's a comment, so it's ok, right?
+		if j == 4 {
+			y = y + 1
+			previousWidth = 0
+		}
 	}
 }
 

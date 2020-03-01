@@ -23,9 +23,10 @@ type CurrentlyPlaying struct {
 	Track      Track  `json:"track"`
 }
 
+// Track is metadata about a currently playing di.fm track
 type Track struct {
-	DisplayArtist string    `json:"display_artist"`
-	DisplayTitle  string    `json:"display_title"`
-	Duration      float64   `json:"duration"`
-	StartTime     time.Time `json:"start_time"`
+	Artist    string    `json:"display_artist"`
+	Title     string    `json:"display_title"`
+	Duration  float64   `json:"duration"`
+	StartTime time.Time `json:"start_time"`
 }

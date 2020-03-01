@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/acaloiaro/dicli/components"
-	"github.com/acaloiaro/dicli/context"
-	"github.com/acaloiaro/dicli/difm"
+	"github.com/acaloiaro/di-tui/components"
+	"github.com/acaloiaro/di-tui/context"
+	"github.com/acaloiaro/di-tui/difm"
 	"github.com/faiface/beep/speaker"
 )
 
@@ -43,7 +43,7 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 			speaker.Play(ctx.AudioStream)
 			ctx.IsPlaying = true
 
-			updateNowPlaying(chn, ctx)
+			UpdateNowPlaying(chn, ctx)
 		}
 	}()
 }
@@ -64,14 +64,12 @@ func TogglePause(ctx *context.AppContext) {
 	ctx.IsPlaying = !ctx.IsPlaying
 }
 
-func updateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
+func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	ctx.CurrentChannel = chn
 	cp := difm.GetCurrentlyPlaying(ctx)
 
 	ctx.View.App.QueueUpdateDraw(func() {
 		ctx.View.NowPlaying.Channel = chn
-		track := cp.Track
-		ctx.View.NowPlaying.Artist = track.DisplayArtist
-		ctx.View.NowPlaying.Track = track.DisplayTitle
+		ctx.View.NowPlaying.Track = cp.Track
 	})
 }

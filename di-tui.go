@@ -160,11 +160,11 @@ func configureUIComponents() {
 
 	// configure the keybinding view
 	bindings := []views.UIKeybinding{
-		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
 		views.UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
 		views.UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
-		views.UIKeybinding{Shortcut: "j", Description: "Scroll Up", Func: func() {}},
-		views.UIKeybinding{Shortcut: "k", Description: "Scroll Down", Func: func() {}},
+		views.UIKeybinding{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
+		views.UIKeybinding{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
+		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
 		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
 		views.UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
 	}

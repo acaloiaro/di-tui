@@ -38,6 +38,7 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
 			if !ctx.SpeakerInitialized {
 				speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+				ctx.SpeakerInitialized = true
 			}
 
 			speaker.Play(ctx.AudioStream)

@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx = context.CreateAppContext(views.CreateAppView())
+	ctx = context.CreateAppContext(views.CreateViewContext())
 	ctx.DifmToken = token
 
 	run()
@@ -47,20 +47,19 @@ func main() {
 
 func run() {
 	configureEventHandling()
+	updateScreenLayout()
 	configureUIComponents()
-	layout := buildUILayout()
 
-	err := ctx.View.App.
-		SetRoot(layout, true).
-		SetFocus(ctx.View.FavoriteList).
-		Run()
+	err := ctx.View.App.Run()
 
 	if err != nil {
 		panic(err)
 	}
 }
 
-func buildUILayout() *tview.Flex {
+func updateScreenLayout() {
+	focusView := ctx.View.App.GetFocus()
+
 	main := tview.NewFlex()
 	main.SetDirection(tview.FlexRow)
 
@@ -69,20 +68,29 @@ func buildUILayout() *tview.Flex {
 		AddItem(ctx.View.ChannelList, 0, 2, false).
 		SetDirection(tview.FlexRow)
 
-	flex := tview.NewFlex()
-	flex.
+	primaryView := tview.NewFlex()
+	primaryView.
 		AddItem(favsAndChannels, 30, 0, false).
 		AddItem(ctx.View.NowPlaying, 0, 4, false)
 
+	if ctx.ShowStatus {
+		main.AddItem(ctx.View.Status, 4, 0, false)
+	}
+
 	main.
-		AddItem(flex, 0, 3, false).
+		AddItem(primaryView, 0, 3, false).
 		AddItem(ctx.View.Keybindings, 4, 0, false)
 
-	return main
+	if focusView == nil {
+		focusView = ctx.View.FavoriteList
+	}
+
+	ctx.View.App.
+		SetRoot(main, true).
+		SetFocus(focusView)
 }
 
 func configureEventHandling() {
-
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		focus := ctx.View.App.GetFocus().(*tview.List)
 
@@ -130,12 +138,26 @@ func configureEventHandling() {
 			ctx.View.App.QueueUpdateDraw(func() {})
 		}
 	}()
+
+	// display the status pane when new status messages arrive
+	go func() {
+		for {
+			status := <-ctx.StatusChannel
+			ctx.View.Status.Message = status.Message
+			updateScreenLayout() // add the status pane to the screen
+
+			<-time.Tick(status.Duration)
+			ctx.ShowStatus = false
+			updateScreenLayout() // remove the status pane from the screen
+		}
+	}()
+
 }
 
 func configureUIComponents() {
 
 	// configure the channel list
-	channels := difm.ListChannels()
+	channels := difm.ListChannels(ctx)
 	for _, chn := range channels {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
 			chn := channels[ctx.View.ChannelList.GetCurrentItem()]

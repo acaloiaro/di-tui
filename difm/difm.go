@@ -81,16 +81,17 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://www.di.fm/_papi/v1/di/currently_playing", nil)
 	resp, err := client.Do(req)
-	if err != nil {
+	if err != nil || resp.StatusCode != 200 {
+		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
-		log.Println("unable to list channels", err.Error())
-		os.Exit(1)
+	if err != nil || resp.StatusCode != 200 {
+		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
+
+		return
 	}
 
 	var currentlyPlayingStations []components.CurrentlyPlaying
@@ -106,7 +107,7 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 }
 
 // ListChannels lists all premium MP3 channels
-func ListChannels() (channels []components.ChannelItem) {
+func ListChannels(ctx *context.AppContext) (channels []components.ChannelItem) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "http://listen.di.fm/premium_high", nil)
 	resp, err := client.Do(req)
@@ -117,15 +118,16 @@ func ListChannels() (channels []components.ChannelItem) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
-		log.Println("unable to list channels", err.Error())
-		os.Exit(1)
+		msg := fmt.Sprintf("Unable to fetch the list of channels: %s", err.Error())
+		ctx.SetStatusMessage(msg)
+		return
 	}
 
 	err = json.Unmarshal(body, &channels)
 	if err != nil {
-		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
-		log.Panicf("unable to fetch channel list: %e", err)
+		msg := fmt.Sprintf("Unable to fetch the list of channels: %s", err.Error())
+		ctx.SetStatusMessage(msg)
+		return
 	}
 
 	return
@@ -146,8 +148,8 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	body, err := ioutil.ReadAll(resp.Body)
 	cfg, err := ini.Load(body)
 	if err != nil {
-		// TODO: show an message in a status UI element of the app
-		fmt.Printf("favorite list parsing failed: %v\n", err.Error())
+		msg := fmt.Sprintf("There was a problem fetching your favorites: %s", err.Error())
+		ctx.SetStatusMessage(msg)
 		return
 	}
 
@@ -172,16 +174,16 @@ func Stream(url string, ctx *context.AppContext) (format beep.Format) {
 	req, _ := http.NewRequest("GET", u, nil)
 	resp, err := client.Do(req)
 	if err != nil {
-		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
-		log.Println("unable to stream channel", err.Error())
-		os.Exit(1)
+		msg := fmt.Sprintf("There was a problem streaming this channel channels: %s", err.Error())
+		ctx.SetStatusMessage(msg)
+		return
 	}
 
 	ctx.AudioStream, format, err = mp3.Decode(resp.Body)
 	if err != nil {
-		// TODO: Don't exit here. Once there's a status message area in the app, populate it with the error
-		log.Println("unable to stream channel:", resp.StatusCode)
-		os.Exit(1)
+		msg := fmt.Sprintf("There was a problem streaming this channel channels: %s", err.Error())
+		ctx.SetStatusMessage(msg)
+		return
 	}
 
 	return

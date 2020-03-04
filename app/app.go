@@ -1,8 +1,8 @@
 package app
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -27,8 +27,8 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", chn.Playlist, nil)
 		resp, err := client.Do(req)
-		if err != nil {
-			log.Fatal(err)
+		if err != nil || resp.StatusCode != 200 {
+			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s", chn.Name))
 		}
 		defer resp.Body.Close()
 
@@ -65,6 +65,7 @@ func TogglePause(ctx *context.AppContext) {
 	ctx.IsPlaying = !ctx.IsPlaying
 }
 
+// UpdateNowPlaying updates the application's now playing view with the currently playing channel
 func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	ctx.CurrentChannel = chn
 	cp := difm.GetCurrentlyPlaying(ctx)

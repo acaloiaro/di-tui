@@ -135,7 +135,7 @@ func ListChannels() (channels []components.ChannelItem) {
 func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem) {
 
 	client := &http.Client{}
-	url := fmt.Sprintf("%s?%s", "http://listen.di.fm/public3/favorites.pls", ctx.DifmToken)
+	url := fmt.Sprintf("%s?%s", "http://listen.di.fm/premium_high/favorites.pls", ctx.DifmToken)
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil {

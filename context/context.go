@@ -7,7 +7,7 @@ import (
 )
 
 // CreateAppContext creates the application context
-func CreateAppContext(view *views.AppView) *AppContext {
+func CreateAppContext(view *views.ViewContext) *AppContext {
 	ctx := &AppContext{View: view}
 
 	return ctx
@@ -20,5 +20,5 @@ type AppContext struct {
 	DifmToken          string
 	IsPlaying          bool
 	SpeakerInitialized bool
-	View               *views.AppView
+	View               *views.ViewContext
 }

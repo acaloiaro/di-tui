@@ -8,7 +8,8 @@ import (
 	"github.com/rivo/tview"
 )
 
-type AppView struct {
+// ViewContext holds references to all the top-level UI elements in the application
+type ViewContext struct {
 	App          *tview.Application
 	ChannelList  *tview.List
 	FavoriteList *tview.List
@@ -30,8 +31,8 @@ type UIKeybinding struct {
 }
 
 // CreateAppView creates the primary application view of di-tui
-func CreateAppView() *AppView {
-	return &AppView{
+func CreateAppView() *ViewContext {
+	return &ViewContext{
 		App:          tview.NewApplication(),
 		ChannelList:  createChannelList(),
 		FavoriteList: createFavoriteList(),

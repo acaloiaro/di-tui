@@ -1,5 +1,5 @@
 # di-tui
-A simple terminal UI player for [di.fm](http://di.fm)
+A simple terminal UI player for [di.fm Premium](http://di.fm) 
 
 ![App Screenshot](https://user-images.githubusercontent.com/3331648/75639432-c39eb380-5bfe-11ea-9a67-d4753a71016f.png)
 # Caveat

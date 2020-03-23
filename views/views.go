@@ -87,12 +87,12 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 }
 
 // Draw draws the key bindings view on to the screen
-func (n *KeybindingView) Draw(screen tcell.Screen) {
-	n.Box.Draw(screen)
-	x, y, width, _ := n.GetInnerRect()
+func (k *KeybindingView) Draw(screen tcell.Screen) {
+	k.Box.Draw(screen)
+	x, y, width, _ := k.GetInnerRect()
 
 	previousWidth := 0
-	for j, bnd := range n.Bindings {
+	for j, bnd := range k.Bindings {
 		line := fmt.Sprintf("(%s)[white] %s", bnd.Shortcut, bnd.Description)
 		tview.Print(screen, line, x+previousWidth, y, width, tview.AlignLeft, tcell.ColorBlue)
 		previousWidth += len(bnd.Shortcut) + len(bnd.Description) + 4

@@ -57,27 +57,6 @@ func CreateViewContext() *ViewContext {
 	}
 }
 
-// Draw draws the key bindings view on to the screen
-func (n *KeybindingView) Draw(screen tcell.Screen) {
-	n.Box.Draw(screen)
-	x, y, width, _ := n.GetInnerRect()
-
-	previousWidth := 0
-	for j, bnd := range n.Bindings {
-		line := fmt.Sprintf("(%s)[white] %s", bnd.Shortcut, bnd.Description)
-		tview.Print(screen, line, x+previousWidth, y, width, tview.AlignLeft, tcell.ColorBlue)
-		previousWidth += len(bnd.Shortcut) + len(bnd.Description) + 4
-
-		// virtically separate playback controls from ui controls
-		// yes, this is hacky, but there's a comment, so it's ok, right?
-		// TODO clean up this mess
-		if j == 4 {
-			y = y + 1
-			previousWidth = 0
-		}
-	}
-}
-
 // Draw draws a NowPlayingView onto the scren
 func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	n.Box.Draw(screen)
@@ -107,9 +86,28 @@ func (s *StatusView) Draw(screen tcell.Screen) {
 
 	s.Box.Draw(screen)
 	x, y, width, _ := s.GetInnerRect()
-
 	line := fmt.Sprintf("%s[white] %s", "Message:", s.Message)
 	tview.Print(screen, line, x, y, width, tview.AlignLeft, tcell.ColorBlue)
+}
+
+// Draw draws the key bindings view on to the screen
+func (k *KeybindingView) Draw(screen tcell.Screen) {
+	k.Box.Draw(screen)
+	x, y, width, _ := k.GetInnerRect()
+
+	previousWidth := 0
+
+	for j, bnd := range k.Bindings {
+		line := fmt.Sprintf("(%s)[white] %s", bnd.Shortcut, bnd.Description)
+		tview.Print(screen, line, x+previousWidth, y, width, tview.AlignLeft, tcell.ColorBlue)
+		previousWidth += len(bnd.Shortcut) + len(bnd.Description) + 4
+		// virtically separate playback controls from ui controls
+		// yes, this is hacky, but there's a comment, so it's ok, right?
+		if j == 4 {
+			y = y + 1
+			previousWidth = 0
+		}
+	}
 }
 
 func createChannelList() *tview.List {

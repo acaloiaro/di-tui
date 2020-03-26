@@ -96,7 +96,6 @@ func (k *KeybindingView) Draw(screen tcell.Screen) {
 	x, y, width, _ := k.GetInnerRect()
 
 	previousWidth := 0
-
 	for j, bnd := range k.Bindings {
 		line := fmt.Sprintf("(%s)[white] %s", bnd.Shortcut, bnd.Description)
 		tview.Print(screen, line, x+previousWidth, y, width, tview.AlignLeft, tcell.ColorBlue)

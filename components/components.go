@@ -30,3 +30,9 @@ type Track struct {
 	Duration  float64   `json:"duration"`
 	StartTime time.Time `json:"start_time"`
 }
+
+// StatusMessage is a message to display in the application for a fixed period of time
+type StatusMessage struct {
+	Message  string
+	Duration time.Duration
+}

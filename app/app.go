@@ -29,11 +29,12 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != 200 {
 			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s", chn.Name))
+			return
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
-		if streamURL, ok := difm.GetStreamURL(body); ok {
+		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
 			format := difm.Stream(streamURL, ctx)
 
 			if !ctx.SpeakerInitialized {

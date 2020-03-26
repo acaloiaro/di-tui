@@ -63,10 +63,11 @@ func Authenticate(username, password string) (token string) {
 }
 
 // GetStreamURL extracts a playlist's stream URL from raw INI bytes (pls file)
-func GetStreamURL(data []byte) (streamURL string, ok bool) {
+func GetStreamURL(data []byte, ctx *context.AppContext) (streamURL string, ok bool) {
 	cfg, err := ini.Load(data)
 	if err != nil {
-		fmt.Printf("playlist file parsing failed : %v\n", err.Error())
+		ctx.SetStatusMessage("Unable to fetch channel playlist file.")
+		ok = false
 		return
 	}
 
@@ -111,22 +112,21 @@ func ListChannels(ctx *context.AppContext) (channels []components.ChannelItem) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "http://listen.di.fm/premium_high", nil)
 	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
+	if err != nil || resp.StatusCode != 200 {
+		ctx.SetStatusMessage("Unable to fetch the list of channels")
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to fetch the list of channels: %s", err.Error())
-		ctx.SetStatusMessage(msg)
+		ctx.SetStatusMessage("Unable to fetch the list of channels")
 		return
 	}
 
 	err = json.Unmarshal(body, &channels)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to fetch the list of channels: %s", err.Error())
-		ctx.SetStatusMessage(msg)
+		ctx.SetStatusMessage("Unable to fetch the list of channels")
 		return
 	}
 
@@ -140,16 +140,16 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	url := fmt.Sprintf("%s?%s", "http://listen.di.fm/premium_high/favorites.pls", ctx.DifmToken)
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
+	if err != nil || resp.StatusCode != 200 {
+		ctx.SetStatusMessage("There was a problem fetching your favorites")
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	cfg, err := ini.Load(body)
 	if err != nil {
-		msg := fmt.Sprintf("There was a problem fetching your favorites: %s", err.Error())
-		ctx.SetStatusMessage(msg)
+		ctx.SetStatusMessage("There was a problem fetching your favorites")
 		return
 	}
 
@@ -173,16 +173,14 @@ func Stream(url string, ctx *context.AppContext) (format beep.Format) {
 	u := fmt.Sprintf("%s?%s", url, config.GetToken())
 	req, _ := http.NewRequest("GET", u, nil)
 	resp, err := client.Do(req)
-	if err != nil {
-		msg := fmt.Sprintf("There was a problem streaming this channel channels: %s", err.Error())
-		ctx.SetStatusMessage(msg)
+	if err != nil || resp.StatusCode != 200 {
+		ctx.SetStatusMessage("There was a problem streaming audio.")
 		return
 	}
 
 	ctx.AudioStream, format, err = mp3.Decode(resp.Body)
 	if err != nil {
-		msg := fmt.Sprintf("There was a problem streaming this channel channels: %s", err.Error())
-		ctx.SetStatusMessage(msg)
+		ctx.SetStatusMessage("There was a problem streaming audio.")
 		return
 	}
 

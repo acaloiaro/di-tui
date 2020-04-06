@@ -19,6 +19,11 @@ import (
 
 var ctx *context.AppContext
 
+func init() {
+	// when true color is on, tcell does not respect your terminal colors
+	os.Setenv("TCELL_TRUECOLOR", "disable")
+}
+
 func main() {
 	pflag.String("username", "", "your di.fm username")
 	pflag.String("password", "", "your di.fm password")

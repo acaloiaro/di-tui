@@ -20,7 +20,7 @@ jobs:
         name: Build with xgo
         uses: docker://acaloiaro/di-tui-builder:latest
         with:
-          args: --targets=linux/amd64,darwin-10.10/amd64 --dest /github/home/build --buildmode pie .
+          args: --targets=linux/amd64,darwin-10.10/amd64 --dest $GITHUB_WORKSPACE/build --buildmode pie .
       - name: Create Release
         uses: actions/create-release@v1
         id: create_release
@@ -31,6 +31,11 @@ jobs:
           release_name: Release ${{ github.sha }}
           draft: false
           prerelease: false
+      - name: List files
+        run: |
+          ls -la $GITHUB_WORKSPACE/../../
+          ls -la $GITHUB_WORKSPACE
+          ls -la $GITHUB_WORKAPACE/build
       - name: Upload Release Asset
         id: upload-release-asset
         uses: glentiki/xbin-release-action@v1.0.0
@@ -38,4 +43,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          assets_path: /github/home/build
+          assets_path: ./build

@@ -20,7 +20,7 @@ jobs:
         name: Build with xgo
         uses: docker://acaloiaro/di-tui-builder:latest
         with:
-          args: --targets=linux/amd64,darwin-10.10/amd64 --dest build --buildmode pie .
+          args: --targets=linux/amd64,darwin-10.10/amd64 --dest /github/home/build --buildmode pie .
       - name: Create Release
         uses: actions/create-release@v1
         id: create_release
@@ -38,4 +38,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build
+          assets_path: /github/home/build

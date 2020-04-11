@@ -10,6 +10,10 @@ Currently this is very crude proof of concept that was written over the course o
 
 This app has been tested on Linux and Mac, but not Windows. However, it should also build on Windows. 
 
+## Binary Releases
+
+There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases). 
+
 ## With `go get`
 `go get -u github.com/acaloiaro/di-tui`
 

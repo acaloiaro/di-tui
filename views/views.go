@@ -71,14 +71,19 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 	line = fmt.Sprintf("%s[white]   %s", "Track:", n.Track.Title)
 	tview.Print(screen, line, x, y+2, width, tview.AlignLeft, tcell.ColorBlue)
 
-	var minutes, seconds int
-	if n.Elapsed > 0 {
-		minutes = int(n.Elapsed / 60)
-		seconds = int(n.Elapsed) % 60
-	}
-	elapsedStr := fmt.Sprintf("%02d:%02d", minutes, seconds)
-	line = fmt.Sprintf("%s[white] %s", "Elapsed:", elapsedStr)
+	line = fmt.Sprintf("%s[white] %s", "Elapsed:", n.elapsedString())
 	tview.Print(screen, line, x, y+3, width, tview.AlignLeft, tcell.ColorBlue)
+}
+
+func (n *NowPlayingView) elapsedString() (str string) {
+
+	if n.Elapsed >= 0 {
+		minutes := int(n.Elapsed / 60)
+		seconds := int(n.Elapsed) % 60
+		str = fmt.Sprintf("%02d:%02d", minutes, seconds)
+	}
+
+	return
 }
 
 // Draw draws a NowPlayingView onto the scren

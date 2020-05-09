@@ -1,16 +1,91 @@
 package app
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	_ "image/jpeg"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
 	"github.com/faiface/beep/speaker"
+	"github.com/michiwend/gomusicbrainz"
+	"github.com/nfnt/resize"
 )
+
+// Art fetches album art for the given track, converts it to ASCII, and return the ASCII stringified album art
+func Art(artist, track string) (art string) {
+
+	// create a new WS2Client.
+	client, err := gomusicbrainz.NewWS2Client(
+		"https://musicbrainz.org/ws/2",
+		"di-tui",
+		"0.0.1",
+		"http://github.com/acaloiaro/di-tui")
+
+	if err != nil {
+		return
+	}
+
+	// search musicbrainz for a matching artist/track
+	searchString := fmt.Sprintf(`artist:"%s" release:"%s"`, artist, track)
+	mbResp, _ := client.SearchRelease(searchString, 1, -1)
+	if len(mbResp.Releases) == 0 {
+		err = fmt.Errorf("no releases foudn for the artist (%s) and track (%s)", artist, track)
+		return
+	}
+
+	// fetch the album art and convert it to ascii
+	release := mbResp.Releases[0]
+	url := fmt.Sprintf("http://coverartarchive.org/release/%s/front", release.ID)
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+
+	img, format, err := image.Decode(resp.Body)
+	if format != "jpeg" && format != "png" || err != nil {
+		err = errors.New("only jpeg and png images supported")
+		return
+	}
+
+	// TODO: Consider the current window size when calculating width
+	art = string(convertToAscii(scaleImage(img, 40)))
+
+	return
+}
+
+func scaleImage(img image.Image, w int) (image.Image, int, int) {
+	sz := img.Bounds()
+	h := (sz.Max.Y * w * 10) / (sz.Max.X * 16)
+	img = resize.Resize(uint(w), uint(h), img, resize.Lanczos3)
+	return img, w, h
+}
+
+func convertToAscii(img image.Image, w, h int) []byte {
+	var ASCIISTR = "MND8OZ$7I?+=~:,.."
+	table := []byte(ASCIISTR)
+	buf := new(bytes.Buffer)
+
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			g := color.GrayModel.Convert(img.At(j, i))
+			y := reflect.ValueOf(g).FieldByName("Y").Uint()
+			pos := int(y * 16 / 255)
+			_ = buf.WriteByte(table[pos])
+		}
+		_ = buf.WriteByte('\n')
+	}
+
+	return buf.Bytes()
+}
 
 // PlayChannel begins streaming the provided channel after fetching its playlist
 // If a channel is already playing, the old stream is stopped first, clearing up resources.
@@ -70,9 +145,11 @@ func TogglePause(ctx *context.AppContext) {
 func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	ctx.CurrentChannel = chn
 	cp := difm.GetCurrentlyPlaying(ctx)
+	albumArt := Art(cp.Track.Artist, cp.Track.Title)
 
 	ctx.View.App.QueueUpdateDraw(func() {
 		ctx.View.NowPlaying.Channel = chn
 		ctx.View.NowPlaying.Track = cp.Track
+		ctx.View.NowPlaying.Art = albumArt
 	})
 }

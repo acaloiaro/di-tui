@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/gdamore/tcell"
@@ -34,6 +35,7 @@ type UIKeybinding struct {
 // NowPlayingView is a custom view for dispalying the currently playing channel
 type NowPlayingView struct {
 	*tview.Box
+	Art     string
 	Channel *components.ChannelItem
 	Elapsed float64
 	Track   components.Track
@@ -73,6 +75,21 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 
 	line = fmt.Sprintf("%s[white] %s", "Elapsed:", n.elapsedString())
 	tview.Print(screen, line, x, y+3, width, tview.AlignLeft, tcell.ColorBlue)
+
+	if n.Art == "" {
+		return
+	}
+
+	artLines := strings.Split(n.Art, "\n")
+	for i, line := range artLines {
+		if i == 0 {
+			label := fmt.Sprintf("[white] %s", "Album Cover")
+			tview.Print(screen, label, x, y+4, width, tview.AlignCenter, tcell.ColorBlue)
+		}
+
+		l := fmt.Sprintf("[white] %s", line)
+		tview.Print(screen, l, x, y+5+i, width, tview.AlignCenter, tcell.ColorBlue)
+	}
 }
 
 func (n *NowPlayingView) elapsedString() (str string) {

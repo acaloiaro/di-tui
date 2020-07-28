@@ -37,7 +37,7 @@ type AppContext struct {
 	View               *views.ViewContext
 }
 
-// SetStatusMessage sets the application's status message for three seconds.
+// SetStatusMessage sets the application's status message for five seconds.
 func (c *AppContext) SetStatusMessage(msg string) {
 	c.SetStatusMessageTimed(msg, 5*time.Second)
 }

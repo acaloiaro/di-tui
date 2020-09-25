@@ -27,7 +27,16 @@ If your `$GOPATH` is not set, see https://github.com/golang/go/wiki/SettingGOPAT
 
 # Authenticate
 
-`di-tui --username "you@yourdomain.com" --password "your password"`
+There are two authentication options 
+
+- Enter your username and password directly into `di-tui`
+- If you're justifiably uncomfortable with entering your username/password into this application, copy your "Listen Key" from (https://www.di.fm/settings) and create the following file:
+
+## ~/.config/di-tui/config.yml 
+```yml
+token: <YOUR LISTEN KEY>
+```
+
 
 # Run
 

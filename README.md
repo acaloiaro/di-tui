@@ -10,6 +10,12 @@ This player is a somewhat crude proof-of-concept that was written over the cours
 
 This app has been tested on Linux and Mac, but not Windows. However, it should also build on Windows. 
 
+## Dependencies 
+
+### Linux 
+
+`apt install libasound2-dev`
+
 ## Binary Releases
 
 There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases). 

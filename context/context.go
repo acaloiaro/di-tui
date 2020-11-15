@@ -5,7 +5,7 @@ import (
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/views"
-	"github.com/faiface/beep"
+	"github.com/jfreymuth/pulse"
 )
 
 // CreateAppContext creates the application context
@@ -27,7 +27,7 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 // View - The view context
 // Status - Gets and sets current application status messages
 type AppContext struct {
-	AudioStream        beep.StreamSeekCloser
+	AudioStream        *pulse.PlaybackStream
 	CurrentChannel     *components.ChannelItem
 	DifmToken          string
 	IsPlaying          bool

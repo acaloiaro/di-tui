@@ -10,12 +10,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-	"time"
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
-	"github.com/faiface/beep/speaker"
 	"github.com/michiwend/gomusicbrainz"
 	"github.com/nfnt/resize"
 )
@@ -110,14 +108,7 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
-			format := difm.Stream(streamURL, ctx)
-
-			if !ctx.SpeakerInitialized {
-				speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-				ctx.SpeakerInitialized = true
-			}
-
-			speaker.Play(ctx.AudioStream)
+			difm.Stream(streamURL, ctx)
 			ctx.IsPlaying = true
 
 			UpdateNowPlaying(chn, ctx)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/hajimehoshi/go-mp3"
@@ -25,23 +26,23 @@ func Play(ctx *context.AppContext, stream io.Reader) {
 	defer c.Close()
 
 	ctx.AudioStream, err = c.NewPlayback(
-		// proto.FormatInt16LE convinces `pulse` to expect 2 bytes per sample, which is necessary given how go-mp3 lays out
-		// decoded bytes.
+		// proto.FormatInt16LE convinces `pulse` to expect 2 bytes per sample; the format that go-mp3 lays out bytes
 		pulse.NewReader(d, proto.FormatInt16LE),
 		pulse.PlaybackSampleRate(d.SampleRate()),
 		pulse.PlaybackStereo,
-		pulse.PlaybackBufferSize(8192),
+		pulse.PlaybackBufferSize(16482),
 	)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	ctx.AudioStream.Start()
-	ctx.AudioStream.Drain()
-	/*fmt.Println("Underflow:", p.Underflow())*/
-	//if p.Error() != nil {
-	//fmt.Println("Error:", p.Error())
-	//}
-	/*p.Close()*/
+	go func() {
+		ctx.AudioStream.Start()
+		ctx.AudioStream.Drain()
+		if ctx.AudioStream.Underflow() {
+			log.Println("Underflow!")
+			os.Exit(1)
+		}
+	}()
 }

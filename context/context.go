@@ -23,18 +23,16 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 // CurrentChannel - The ChannelItem representing the currently playing di.fm channel
 // DfmToken - The token used to authenticate to di.fm
 // IsPlaying - Is there audio playing?
-// SpeakerInitialized - Has the speaker been initialized with a bitrate?
 // View - The view context
 // Status - Gets and sets current application status messages
 type AppContext struct {
-	AudioStream        *pulse.PlaybackStream
-	CurrentChannel     *components.ChannelItem
-	DifmToken          string
-	IsPlaying          bool
-	ShowStatus         bool // The status pane will be visible when true
-	SpeakerInitialized bool
-	StatusChannel      chan components.StatusMessage
-	View               *views.ViewContext
+	AudioStream    *pulse.PlaybackStream
+	CurrentChannel *components.ChannelItem
+	DifmToken      string
+	IsPlaying      bool
+	ShowStatus     bool // The status pane will be visible when true
+	StatusChannel  chan components.StatusMessage
+	View           *views.ViewContext
 }
 
 // SetStatusMessage sets the application's status message for three seconds.

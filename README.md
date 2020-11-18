@@ -23,7 +23,7 @@ brew services start pulseaudio
 
 ### Linux 
 
-`apt install pulseaduio`
+`apt install pulseaudio`
 
 ## Binary Releases
 

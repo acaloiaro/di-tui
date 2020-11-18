@@ -3,7 +3,9 @@ A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 ![App Screenshot](https://user-images.githubusercontent.com/3331648/81481515-bb668400-91fe-11ea-8a7c-39e1bb76c55d.png)
 
-# Dependencies
+# Install
+
+## Dependencies 
 
 ## PulseAudio
 
@@ -19,13 +21,9 @@ ln -s $(brew info pulseaudio | grep "/usr/local/Cellar" | awk '{print $1}')//hom
 brew services start pulseaudio
 ```
 
-# Install
-
-## Dependencies 
-
 ### Linux 
 
-`apt install libasound2-dev`
+`apt install pulseaduio`
 
 ## Binary Releases
 

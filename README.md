@@ -1,14 +1,25 @@
 # di-tui
-A simple terminal UI player for [di.fm Premium](http://di.fm) 
+A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 ![App Screenshot](https://user-images.githubusercontent.com/3331648/81481515-bb668400-91fe-11ea-8a7c-39e1bb76c55d.png)
-# Caveat
 
-This player is a somewhat crude proof-of-concept that was written over the course of ~8 hours and slightly improved upon since. There are not doubt bugs. Help me improve it if you find it useful. 
+# Dependencies
+
+## PulseAudio
+
+Both linux and MacOS depend on pulseaudio to be running.
+
+### MacOS
+
+By default, pulseaudio on MacOS runs as "root", which is not ideal. PulseAudio is best run by non-root users. By symbolically linking the pulseaudio plist file into your user's `~/Library/LaunchAgents/`, it runs as your user.
+
+```
+brew install pulseaudio
+ln -s $(brew info pulseaudio | grep "/usr/local/Cellar" | awk '{print $1}')//homebrew.mxcl.pulseaudio.plist ~/Library/LaunchAgents
+brew services start pulseaudio
+```
 
 # Install
-
-This app has been tested on Linux and Mac, but not Windows. However, it should also build on Windows. 
 
 ## Dependencies 
 
@@ -18,7 +29,7 @@ This app has been tested on Linux and Mac, but not Windows. However, it should a
 
 ## Binary Releases
 
-There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases). 
+There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases).
 
 ## With `go get`
 `go get -u github.com/acaloiaro/di-tui`

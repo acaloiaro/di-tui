@@ -1,11 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
-	"syscall"
 	"time"
 
 	"github.com/acaloiaro/di-tui/app"
@@ -16,7 +13,8 @@ import (
 	"github.com/rivo/tview"
 
 	"github.com/gdamore/tcell"
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 var ctx *context.AppContext
@@ -27,10 +25,23 @@ func init() {
 }
 
 func main() {
-	var token = config.GetToken()
+	pflag.String("username", "", "your di.fm username")
+	pflag.String("password", "", "your di.fm password")
 
+	pflag.Parse()
+	viper.BindPFlags(pflag.CommandLine)
+
+	username := viper.GetString("username")
+	password := viper.GetString("password")
+	var token string
+	if len(username) > 0 && len(password) > 0 {
+		difm.Authenticate(username, password)
+	}
+
+	token = config.GetToken()
 	if token == "" {
-		token = login()
+		fmt.Println("First, authenticate with by running: di-tui --username USER --password PASSWORD")
+		os.Exit(1)
 	}
 
 	ctx = context.CreateAppContext(views.CreateViewContext())
@@ -49,33 +60,6 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func login() (token string) {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("di.fm username: ")
-	username, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Unable to read username", err)
-	}
-
-	fmt.Print("di.fm password: ")
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		fmt.Println("Unable to read password", err)
-	}
-
-	username = strings.TrimSpace(username)
-	password := strings.TrimSpace(string(bytePassword))
-	if len(username) > 0 && len(password) > 0 {
-		return difm.Authenticate(username, password)
-	} else {
-		fmt.Println("Please enter a non-empty usernamd and password")
-		os.Exit(0)
-	}
-
-	return
 }
 
 func updateScreenLayout() {
@@ -144,7 +128,7 @@ func configureEventHandling() {
 	go func() {
 		c := time.Tick(1 * time.Second)
 		for range c {
-			elapsed := time.Now().Sub(ctx.View.NowPlaying.Track.StartTime)
+			elapsed := time.Since(ctx.View.NowPlaying.Track.StartTime)
 
 			// If the current time is past the end of the track, then a new track is playing and the now playing track needs
 			// to be refreshed.

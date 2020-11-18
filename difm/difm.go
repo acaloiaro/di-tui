@@ -12,12 +12,12 @@ import (
 	"strings"
 
 	"github.com/acaloiaro/di-tui/context"
+	"github.com/acaloiaro/di-tui/player"
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/bradfitz/iter"
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
 	ini "gopkg.in/ini.v1"
 )
 
@@ -178,9 +178,9 @@ func Stream(url string, ctx *context.AppContext) (format beep.Format) {
 		return
 	}
 
-	ctx.AudioStream, format, err = mp3.Decode(resp.Body)
+	go func() { player.Play(ctx, resp.Body) }()
 	if err != nil {
-		ctx.SetStatusMessage("There was a problem streaming audio.")
+		ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
 		return
 	}
 

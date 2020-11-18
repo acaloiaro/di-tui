@@ -3,8 +3,6 @@ package player
 import (
 	"fmt"
 	"io"
-	"log"
-	"os"
 
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/hajimehoshi/go-mp3"
@@ -12,10 +10,10 @@ import (
 	"github.com/jfreymuth/pulse/proto"
 )
 
-func Play(ctx *context.AppContext, stream io.Reader) {
+func Play(ctx *context.AppContext, stream io.Reader) (err error) {
 	d, err := mp3.NewDecoder(stream)
 	if err != nil {
-		log.Println("Unable to decode mp3 file")
+		return
 	}
 
 	c, err := pulse.NewClient()
@@ -33,16 +31,11 @@ func Play(ctx *context.AppContext, stream io.Reader) {
 		pulse.PlaybackBufferSize(16482),
 	)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	go func() {
-		ctx.AudioStream.Start()
-		ctx.AudioStream.Drain()
-		if ctx.AudioStream.Underflow() {
-			log.Println("Underflow!")
-			os.Exit(1)
-		}
-	}()
+	ctx.AudioStream.Start()
+	ctx.AudioStream.Drain()
+
+	return
 }

@@ -178,9 +178,9 @@ func Stream(url string, ctx *context.AppContext) (format beep.Format) {
 		return
 	}
 
-	player.Play(ctx, resp.Body)
+	go func() { player.Play(ctx, resp.Body) }()
 	if err != nil {
-		ctx.SetStatusMessage("There was a problem streaming audio.")
+		ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
 		return
 	}
 

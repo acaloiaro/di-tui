@@ -26,3 +26,5 @@ require (
 	gopkg.in/ini.v1 v1.52.0
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
+
+replace github.com/jfreymuth/pulse => github.com/acaloiaro/pulse v1.0.1

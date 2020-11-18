@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
-	github.com/faiface/beep v1.0.2
 	github.com/gdamore/tcell v1.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/hajimehoshi/go-mp3 v0.2.1

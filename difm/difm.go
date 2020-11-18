@@ -17,7 +17,6 @@ import (
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/bradfitz/iter"
-	"github.com/faiface/beep"
 	ini "gopkg.in/ini.v1"
 )
 
@@ -168,7 +167,7 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 }
 
 // Stream streams the provided URL using the given di.fm premium token
-func Stream(url string, ctx *context.AppContext) (format beep.Format) {
+func Stream(url string, ctx *context.AppContext) {
 	client := &http.Client{}
 	u := fmt.Sprintf("%s?%s", url, config.GetToken())
 	req, _ := http.NewRequest("GET", u, nil)

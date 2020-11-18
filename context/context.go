@@ -19,7 +19,7 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 }
 
 // AppContext is a shared context to be shared across the application
-// AudioStream - The raw audio stream used by the beep library to stream audio
+// AudioStream - The raw audio stream from which audio is streamed by the player
 // CurrentChannel - The ChannelItem representing the currently playing di.fm channel
 // DfmToken - The token used to authenticate to di.fm
 // IsPlaying - Is there audio playing?

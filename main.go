@@ -35,7 +35,7 @@ func main() {
 	password := viper.GetString("password")
 	var token string
 	if len(username) > 0 && len(password) > 0 {
-		token = difm.Authenticate(username, password)
+		difm.Authenticate(username, password)
 	}
 
 	token = config.GetToken()
@@ -128,7 +128,7 @@ func configureEventHandling() {
 	go func() {
 		c := time.Tick(1 * time.Second)
 		for range c {
-			elapsed := time.Now().Sub(ctx.View.NowPlaying.Track.StartTime)
+			elapsed := time.Since(ctx.View.NowPlaying.Track.StartTime)
 
 			// If the current time is past the end of the track, then a new track is playing and the now playing track needs
 			// to be refreshed.

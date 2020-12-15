@@ -14,10 +14,23 @@ func init() {
 	viper.AddConfigPath("$HOME/.config/di-tui")
 	viper.AddConfigPath("$HOME/.di-tui/")
 	viper.AddConfigPath(".")
+
+	viper.SetDefault("album_art", true)
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		saveConfig()
 	}
+}
+
+// AlbumArt returns true if album art should be fetched when a new song begins playing
+func AlbumArt() bool {
+	return viper.GetBool("album_art")
+}
+
+// GetToken returns the di.fm API token if one is available
+func GetToken() (token string) {
+	return viper.GetString("token")
 }
 
 // SaveToken persists the di.fm API token to disk
@@ -27,11 +40,6 @@ func SaveToken(token string) {
 	viper.Set("token", token)
 
 	saveConfig()
-}
-
-// GetToken returns the di.fm API token if one is available
-func GetToken() (token string) {
-	return viper.GetString("token")
 }
 
 func saveConfig() {

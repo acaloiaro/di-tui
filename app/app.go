@@ -12,6 +12,7 @@ import (
 	"reflect"
 
 	"github.com/acaloiaro/di-tui/components"
+	"github.com/acaloiaro/di-tui/config"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
 	"github.com/michiwend/gomusicbrainz"
@@ -21,12 +22,16 @@ import (
 // Art fetches album art for the given track, converts it to ASCII, and return the ASCII stringified album art
 func Art(artist, track string) (art string) {
 
+	if !config.AlbumArt() {
+		return
+	}
+
 	// create a new WS2Client.
 	client, err := gomusicbrainz.NewWS2Client(
 		"https://musicbrainz.org/ws/2",
 		"di-tui",
 		"0.0.1",
-		"http://github.com/acaloiaro/di-tui")
+		"https://github.com/acaloiaro/di-tui")
 
 	if err != nil {
 		return
@@ -36,7 +41,7 @@ func Art(artist, track string) (art string) {
 	searchString := fmt.Sprintf(`artist:"%s" release:"%s"`, artist, track)
 	mbResp, _ := client.SearchRelease(searchString, 1, -1)
 	if len(mbResp.Releases) == 0 {
-		err = fmt.Errorf("no releases foudn for the artist (%s) and track (%s)", artist, track)
+		err = fmt.Errorf("no releases found for the artist (%s) and track (%s)", artist, track)
 		return
 	}
 
@@ -132,15 +137,21 @@ func TogglePause(ctx *context.AppContext) {
 	ctx.IsPlaying = !ctx.IsPlaying
 }
 
-// UpdateNowPlaying updates the application's now playing view with the currently playing channel
+// UpdateNowPlaying updates the application's now playing view with the currently playing channel and album art
+// Artist and track information are fetched separately from album art, allowing for a more responsive UI
 func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
-	ctx.CurrentChannel = chn
-	cp := difm.GetCurrentlyPlaying(ctx)
-	albumArt := Art(cp.Track.Artist, cp.Track.Title)
+	go func() {
+		ctx.CurrentChannel = chn
+		cp := difm.GetCurrentlyPlaying(ctx)
 
-	ctx.View.App.QueueUpdateDraw(func() {
-		ctx.View.NowPlaying.Channel = chn
-		ctx.View.NowPlaying.Track = cp.Track
-		ctx.View.NowPlaying.Art = albumArt
-	})
+		ctx.View.App.QueueUpdateDraw(func() {
+			ctx.View.NowPlaying.Channel = chn
+			ctx.View.NowPlaying.Track = cp.Track
+		})
+
+		albumArt := Art(cp.Track.Artist, cp.Track.Title)
+		ctx.View.App.QueueUpdateDraw(func() {
+			ctx.View.NowPlaying.Art = albumArt
+		})
+	}()
 }

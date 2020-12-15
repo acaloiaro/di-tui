@@ -40,7 +40,8 @@ func main() {
 
 	token = config.GetToken()
 	if token == "" {
-		fmt.Println("First, authenticate with by running: di-tui --username USER --password PASSWORD")
+		fmt.Println("Authenticate by running: di-tui --username USER --password PASSWORD\n\n" +
+			"Or, visit https://github.com/acaloiaro/di-tui#authenticate for other options.")
 		os.Exit(1)
 	}
 

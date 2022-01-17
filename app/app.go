@@ -20,7 +20,7 @@ import (
 )
 
 // Art fetches album art for the given track, converts it to ASCII, and return the ASCII stringified album art
-func Art(artist, track string) (art string) {
+func Art(artist, track string) (art string, err error) {
 
 	if !config.AlbumArt() {
 		return
@@ -149,7 +149,10 @@ func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 			ctx.View.NowPlaying.Track = cp.Track
 		})
 
-		albumArt := Art(cp.Track.Artist, cp.Track.Title)
+		albumArt, err := Art(cp.Track.Artist, cp.Track.Title)
+		if err != nil {
+			return
+		}
 		ctx.View.App.QueueUpdateDraw(func() {
 			ctx.View.NowPlaying.Art = albumArt
 		})

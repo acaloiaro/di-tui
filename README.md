@@ -29,8 +29,8 @@ brew services start pulseaudio
 
 There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases).
 
-## With `go get`
-`go get -u github.com/acaloiaro/di-tui`
+## With `go install`
+`go install github.com/acaloiaro/di-tui@latest
 
 If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zshrc`)
 ```

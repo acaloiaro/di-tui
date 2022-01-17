@@ -20,15 +20,6 @@ import (
 	ini "gopkg.in/ini.v1"
 )
 
-/* di.fm API
-Track details: http://www.di.fm/tracks/<track id>
-Listen history: POST /_papi/v1/di/listen_history
-       Payload: {track_id: 2918701, playlist_id: 63675}
-Currently playing (all stations): https://www.di.fm/_papi/v1/di/currently_playing
-Skip track: https://www.di.fm/_papi/v1/di/skip_events
-Favorites: http://listen.di.fm/public3/favorites.pls?<listen key>
-*/
-
 // Authenticate authenticates to the di.fm API with username and password, returning the listen token
 func Authenticate(username, password string) (token string) {
 	authURL := "https://api.audioaddict.com/v1/di/members/authenticate"
@@ -79,10 +70,11 @@ func GetStreamURL(data []byte, ctx *context.AppContext) (streamURL string, ok bo
 // GetCurrentlyPlaying fetches the list of all currently playing tracks site-side
 func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.CurrentlyPlaying) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "https://www.di.fm/_papi/v1/di/currently_playing", nil)
+	req, _ := http.NewRequest("GET", "https://api.audioaddict.com/v1/di/currently_playing", nil)
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
-		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
+		msg := fmt.Sprintf("Unable to fetch currently playing track info: %v", resp.StatusCode)
+		ctx.SetStatusMessage(msg)
 		return
 	}
 	defer resp.Body.Close()

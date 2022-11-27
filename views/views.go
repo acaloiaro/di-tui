@@ -155,7 +155,7 @@ func createKeybindings() *KeybindingView {
 	kbv := &KeybindingView{Box: tview.NewBox()}
 	kbv.
 		SetBorder(true).
-		SetTitle(" Key Bindings ")
+		SetTitle(" Keyboard Controls ")
 
 	return kbv
 }

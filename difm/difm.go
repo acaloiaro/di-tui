@@ -3,7 +3,7 @@ package difm
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -39,7 +39,7 @@ func Authenticate(username, password string) (token string) {
 	defer resp.Body.Close()
 
 	var res authResponse
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode != 200 {
 		fmt.Println("Unable to authenticate to di.fm. Status code:", resp.StatusCode)
 		os.Exit(1)
@@ -79,7 +79,7 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode != 200 {
 		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
 
@@ -109,7 +109,7 @@ func ListChannels(ctx *context.AppContext) (channels []components.ChannelItem) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		ctx.SetStatusMessage("Unable to fetch the list of channels")
 		return
@@ -137,7 +137,7 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	cfg, err := ini.Load(body)
 	if err != nil {
 		ctx.SetStatusMessage("There was a problem fetching your favorites")
@@ -174,8 +174,6 @@ func Stream(url string, ctx *context.AppContext) {
 		ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
 		return
 	}
-
-	return
 }
 
 type authResponse struct {

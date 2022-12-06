@@ -33,19 +33,18 @@ func main() {
 
 	username := viper.GetString("username")
 	password := viper.GetString("password")
-	var token string
+	ctx = context.CreateAppContext(views.CreateViewContext())
 	if len(username) > 0 && len(password) > 0 {
-		difm.Authenticate(username, password)
+		difm.Authenticate(ctx, username, password)
 	}
 
-	token = config.GetToken()
+	token := config.GetToken()
 	if token == "" {
 		fmt.Println("Authenticate by running: di-tui --username USER --password PASSWORD\n\n" +
 			"Or, visit https://github.com/acaloiaro/di-tui#authenticate for other options.")
 		os.Exit(1)
 	}
 
-	ctx = context.CreateAppContext(views.CreateViewContext())
 	ctx.DifmToken = token
 
 	run()

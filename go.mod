@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
 	github.com/gdamore/tcell v1.3.0
-	github.com/hajimehoshi/go-mp3 v0.2.1
+	github.com/hajimehoshi/go-mp3 v0.3.4
 	github.com/jfreymuth/pulse v0.0.0-20201014123913-1e525c426c93
 	github.com/michiwend/gomusicbrainz v0.0.0-20181012083520-6c07e13dd396
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -19,6 +19,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/hajimehoshi/oto/v2 v2.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect

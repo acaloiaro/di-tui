@@ -1,6 +1,7 @@
 package difm
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -296,6 +297,8 @@ type channelContent struct {
 func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 	client := http.Client{}
 
+	byteRangeSize := 100000
+
 	// Fetch the list of tracks currently playing on this channel
 	u := fmt.Sprintf("https://api.audioaddict.com/v1/di/routines/channel/%s?tune_in=false&audio_token=%s", channelID, config.GetAudioToken())
 	req, _ := http.NewRequest("GET", u, nil)
@@ -317,18 +320,54 @@ func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 	// Fetch the first-playing track on this channel
 	u = fmt.Sprintf("https:%s", chnContent.Tracks[0].Content.Assets[0].Url)
 	ctx.SetStatusMessage(u)
-	req, err = http.NewRequest("GET", u, nil)
-	req.Header.Add("Range", "bytes=0-1000000")
+
+	// Determine the track size in bytes
+	req, _ = http.NewRequest("HEAD", u, nil)
+	resp, err = client.Do(req)
+	if err != nil || resp.StatusCode != 200 {
+		return
+	}
+
+	trackBytes, err := strconv.Atoi(resp.Header.Get("Content-Length"))
 	if err != nil {
 		return
 	}
 
-	resp, err = client.Do(req)
-	if err != nil || resp.StatusCode != 206 {
-		return
-	}
+	piper, pipew := io.Pipe()
+	bufferedPipeWriter := bufio.NewWriter(pipew)
+	bufferedPipeReader := bufio.NewReader(piper)
 
-	go func() { player.Play(ctx, resp.Body) }()
+	// Request all byte ranges, while flushing retrieved bytes into the player buffer
+	req, err = http.NewRequest("GET", u, nil)
+	var high int
+	for low := 0; low < trackBytes; low += byteRangeSize {
+		if low+byteRangeSize > trackBytes {
+			high = trackBytes
+		} else {
+			high = low + byteRangeSize
+		}
+
+		byteRange := fmt.Sprintf("bytes=%d-%d", low, high)
+		req.Header.Set("Range", byteRange)
+		resp, err = client.Do(req)
+		if err != nil || resp.StatusCode != 206 {
+			return
+		}
+
+		// If the player is not already playing the stream, start playing it
+		if !player.IsPlaying {
+			go func() { player.Play(ctx, bufferedPipeReader) }()
+		}
+
+		go func() {
+			fmt.Println("Writing response bytes to play buffer")
+			_, err := io.Copy(bufferedPipeWriter, resp.Body)
+			if err != nil {
+				fmt.Println("Error writing bytes from network to pipe", err)
+				return
+			}
+		}()
+	}
 
 	return
 }

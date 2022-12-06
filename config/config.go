@@ -35,9 +35,31 @@ func GetToken() (token string) {
 
 // SaveToken persists the di.fm API token to disk
 func SaveToken(token string) {
-	viper.Set("username", "")
-	viper.Set("password", "")
 	viper.Set("token", token)
+
+	saveConfig()
+}
+
+// GetAudioToken gets the audio token from disk
+func GetAudioToken() string {
+	return viper.GetString("audioToken")
+}
+
+// SaveAudioToken saves the audio token to disk
+func SaveAudioToken(audioToken string) {
+	viper.Set("audioToken", audioToken)
+
+	saveConfig()
+}
+
+// GetSessionKey gets the session key from disk
+func GetSessionKey() string {
+	return viper.GetString("sessionKey")
+}
+
+// SaveSessionKey saves the session key to disk
+func SaveSessionKey(sessionKey string) {
+	viper.Set("sessionKey", sessionKey)
 
 	saveConfig()
 }

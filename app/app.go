@@ -7,7 +7,6 @@ import (
 	"image"
 	"image/color"
 	_ "image/jpeg"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 
@@ -102,22 +101,14 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 	}
 
 	go func() {
-		client := &http.Client{}
-		req, _ := http.NewRequest("GET", chn.Playlist, nil)
-		resp, err := client.Do(req)
-		if err != nil || resp.StatusCode != 200 {
-			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s", chn.Name))
+		err := difm.FetchContent(ctx, fmt.Sprint(chn.ID))
+		if err != nil {
+			ctx.SetStatusMessage(err.Error())
 			return
 		}
-		defer resp.Body.Close()
+		ctx.IsPlaying = true
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
-			difm.Stream(streamURL, ctx)
-			ctx.IsPlaying = true
-
-			UpdateNowPlaying(chn, ctx)
-		}
+		UpdateNowPlaying(chn, ctx)
 	}()
 }
 
@@ -143,7 +134,6 @@ func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 	go func() {
 		ctx.CurrentChannel = chn
 		cp := difm.GetCurrentlyPlaying(ctx)
-
 		ctx.View.App.QueueUpdateDraw(func() {
 			ctx.View.NowPlaying.Channel = chn
 			ctx.View.NowPlaying.Track = cp.Track

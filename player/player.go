@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"time"
 
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/hajimehoshi/go-mp3"
@@ -32,9 +32,10 @@ func Play(ctx *context.AppContext, stream io.Reader) (err error) {
 	for err != nil {
 		d, err = mp3.NewDecoder(stream)
 		if err != nil {
-			fmt.Println("Decoding failed")
+			// TODO print a message explaining that the fetched content can't be played
 			return
 		}
+		time.Sleep(time.Second * 1)
 	}
 
 	ctx.AudioStream, err = pulseClient.NewPlayback(
@@ -43,15 +44,15 @@ func Play(ctx *context.AppContext, stream io.Reader) (err error) {
 		pulse.PlaybackSampleRate(d.SampleRate()),
 		pulse.PlaybackStereo,
 		pulse.PlaybackBufferSize(16482),
+		pulse.PlaybackLatency(3.0),
 	)
 	if err != nil {
 		return
 	}
 
-	log.Println("playing audio")
 	IsPlaying = true
 	ctx.AudioStream.Start()
-	ctx.AudioStream.Drain()
+	//ctx.AudioStream.Drain()
 	IsPlaying = false
 
 	return

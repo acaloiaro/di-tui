@@ -1,8 +1,9 @@
 package difm
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -333,9 +334,16 @@ func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 		return
 	}
 
-	piper, pipew := io.Pipe()
-	bufferedPipeWriter := bufio.NewWriter(pipew)
-	bufferedPipeReader := bufio.NewReader(piper)
+	var audioReader = &bytes.Buffer{}
+	audioReader.Grow(trackBytes)
+	var audioDataChannel = make(chan []byte, 5)
+	go func() {
+		err := errors.New("no data buffered")
+		for err != nil {
+			//fmt.Println("Read bytes from network")
+			audioReader.Write(<-audioDataChannel)
+		}
+	}()
 
 	// Request all byte ranges, while flushing retrieved bytes into the player buffer
 	req, err = http.NewRequest("GET", u, nil)
@@ -354,19 +362,21 @@ func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 			return
 		}
 
-		// If the player is not already playing the stream, start playing it
-		if !player.IsPlaying {
-			go func() { player.Play(ctx, bufferedPipeReader) }()
-		}
-
-		go func() {
-			fmt.Println("Writing response bytes to play buffer")
-			_, err := io.Copy(bufferedPipeWriter, resp.Body)
-			if err != nil {
-				fmt.Println("Error writing bytes from network to pipe", err)
+		var networkToMemoryBuffer = make([]byte, byteRangeSize)
+		_, err = io.ReadFull(resp.Body, networkToMemoryBuffer)
+		if err != nil {
+			if err != io.EOF {
+				//fmt.Println("Error taking file reader bytes and copying to temp buffer:", err)
 				return
 			}
-		}()
+		}
+
+		audioDataChannel <- networkToMemoryBuffer
+
+		// If the player is not already playing the stream, start playing it
+		if !player.IsPlaying {
+			go func() { player.Play(ctx, audioReader) }()
+		}
 	}
 
 	return

@@ -4,28 +4,43 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
+	"os"
 	"time"
 
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/hajimehoshi/go-mp3"
-	"github.com/jfreymuth/pulse"
-	"github.com/jfreymuth/pulse/proto"
+	"github.com/hajimehoshi/oto/v2"
 )
 
 var IsPlaying = false
 
-var pulseClient *pulse.Client
+var otoCtx *oto.Context
+var readyChan <-chan struct{}
 
 func init() {
 	var err error
-	pulseClient, err = pulse.NewClient()
+	samplingRate := 44100
+
+	// Number of channels (aka locations) to play sounds from. Either 1 or 2.
+	// 1 is mono sound, and 2 is stereo (most speakers are stereo).
+	numOfChannels := 2
+
+	// Bytes used by a channel to represent one sample. Either 1 or 2 (usually 2).
+	audioBitDepth := 2
+
+	// Remember that you should **not** create more than one context
+	otoCtx, readyChan, err = oto.NewContext(samplingRate, numOfChannels, audioBitDepth)
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic("oto.NewContext failed: " + err.Error())
 	}
+	// It might take a bit for the hardware audio devices to be ready, so we wait on the channel.
+	<-readyChan
+
 }
 
 func Play(ctx *context.AppContext, stream io.Reader) (err error) {
+	IsPlaying = true
 	var d *mp3.Decoder
 	err = errors.New("wait for buffer to fill")
 	// Wait for the buffer to contain audio data
@@ -33,27 +48,26 @@ func Play(ctx *context.AppContext, stream io.Reader) (err error) {
 		d, err = mp3.NewDecoder(stream)
 		if err != nil {
 			// TODO print a message explaining that the fetched content can't be played
-			return
+			continue
 		}
-		time.Sleep(time.Second * 1)
 	}
 
-	ctx.AudioStream, err = pulseClient.NewPlayback(
-		// proto.FormatInt16LE convinces `pulse` to expect 2 bytes per sample; the format that go-mp3 lays out bytes
-		pulse.NewReader(d, proto.FormatInt16LE),
-		pulse.PlaybackSampleRate(d.SampleRate()),
-		pulse.PlaybackStereo,
-		pulse.PlaybackBufferSize(16482),
-		pulse.PlaybackLatency(3.0),
-	)
-	if err != nil {
-		return
+	// Create a new 'player' that will handle our sound. Paused by default.
+	player := otoCtx.NewPlayer(d)
+
+	// Play starts playing the sound and returns without waiting for it (Play() is async).
+	player.Play()
+
+	if player.Err() != nil {
+		log.Println(player.Err())
+		os.Exit(33)
+	}
+	// We can wait for the sound to finish playing using something like this
+	for player.IsPlaying() {
+		time.Sleep(time.Millisecond)
 	}
 
-	IsPlaying = true
-	ctx.AudioStream.Start()
-	//ctx.AudioStream.Drain()
+	fmt.Println("No longer playing")
 	IsPlaying = false
-
 	return
 }

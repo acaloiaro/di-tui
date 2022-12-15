@@ -26,6 +26,7 @@ import (
 
 type ApplicationMetadata struct {
 	User struct {
+		ID         int64  `json:"id"`
 		AudioToken string `json:"audio_token"`
 		SessionKey string `json:"session_key"`
 	} `json:"user"`
@@ -107,8 +108,36 @@ func Authenticate(ctx *context.AppContext, username, password string) (token str
 		os.Exit(1)
 	}
 
+	// 4. POST https://api.audioaddict.com/v1/di/members/<ID>/preferred_quality to set playback to MP3
+	preferredQualityURL := fmt.Sprintf("https://api.audioaddict.com/v1/di/members/%d/preferred_quality", meta.User.ID)
+	pqData := url.Values{}
+	pqData.Set("quality_id", "4")
+	encodedData = pqData.Encode()
+	req, _ = http.NewRequest("POST", preferredQualityURL, strings.NewReader(encodedData))
+	req.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Add("Origin", "https://www.di.fm")
+	req.Header.Add("Referrer", "https://www.di.fm")
+	req.Header.Add("Accept", "*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript")
+	req.Header.Add("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Add("X-Session-Key", meta.User.SessionKey)
+	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0")
+	req.Header.Add("Sec-Fetch-Mode", "cors")
+	req.Header.Add("Sec-Fetch-Dest", "empty")
+	req.Header.Add("Sec-Fetch-Site", "same-origin")
+	req.Header.Add("X-Requested-With", "XMLHttpRequest")
+	req.Header.Add("te", "trailers")
+	req.Header.Add("X-CSRF-Token", meta.CsrfToken)
+
+	resp, err = client.Do(req)
+	if err != nil || resp.StatusCode != 201 {
+		log.Fatal("setting preferred quality failed", err)
+	}
+	defer resp.Body.Close()
+
 	config.SaveAudioToken(meta.User.AudioToken)
 	config.SaveSessionKey(meta.User.SessionKey)
+	config.SaveUserID(meta.User.ID)
 
 	return
 }
@@ -146,6 +175,7 @@ func getApplicationMetadata(ctx *context.AppContext, client *http.Client) (appMe
 		appMeta = ApplicationMetadata{}
 		err = json.Unmarshal([]byte(matches[1]), &appMeta)
 		if err != nil {
+			log.Println(err)
 			return
 		}
 	}
@@ -298,7 +328,7 @@ type channelContent struct {
 func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 	client := http.Client{}
 
-	byteRangeSize := 100000
+	byteRangeSize := 1000000 // 1MB
 
 	// Fetch the list of tracks currently playing on this channel
 	u := fmt.Sprintf("https://api.audioaddict.com/v1/di/routines/channel/%s?tune_in=false&audio_token=%s", channelID, config.GetAudioToken())

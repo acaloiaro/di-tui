@@ -64,6 +64,13 @@ func SaveSessionKey(sessionKey string) {
 	saveConfig()
 }
 
+// SaveUserID saves the user's ID
+func SaveUserID(userID int64) {
+	viper.Set("user_id", userID)
+
+	saveConfig()
+}
+
 func saveConfig() {
 	viper.SetConfigFile(configFilePath())
 	viper.SetConfigType("yaml")

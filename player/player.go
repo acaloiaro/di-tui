@@ -2,7 +2,6 @@ package player
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -67,7 +66,7 @@ func Play(ctx *context.AppContext, stream io.Reader) (err error) {
 		time.Sleep(time.Millisecond)
 	}
 
-	fmt.Println("No longer playing")
 	IsPlaying = false
+
 	return
 }

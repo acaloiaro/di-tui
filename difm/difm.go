@@ -327,7 +327,7 @@ type channelContent struct {
 // function, which is for streaming-only content.
 func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 	client := http.Client{}
-
+	var resp *http.Response
 	byteRangeSize := 1000000 // 1MB
 
 	// Fetch the list of tracks currently playing on this channel
@@ -335,9 +335,8 @@ func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 	req, _ := http.NewRequest("GET", u, nil)
 	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0")
 	req.Header.Set("X-Session-Key", config.GetSessionKey())
-	resp, err := client.Do(req)
+	resp, err = client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
-		os.Exit(1)
 		return
 	}
 
@@ -375,39 +374,41 @@ func FetchContent(ctx *context.AppContext, channelID string) (err error) {
 		}
 	}()
 
-	// Request all byte ranges, while flushing retrieved bytes into the player buffer
-	req, err = http.NewRequest("GET", u, nil)
-	var high int
-	for low := 0; low < trackBytes; low += byteRangeSize {
-		if low+byteRangeSize > trackBytes {
-			high = trackBytes
-		} else {
-			high = low + byteRangeSize
-		}
+	var networkToMemoryBuffer = make([]byte, byteRangeSize)
+	go func() {
+		// Request all byte ranges, while flushing retrieved bytes into the player buffer
+		req, err = http.NewRequest("GET", u, nil)
+		var high int
+		for low := 0; low < trackBytes; low += byteRangeSize {
+			if low+byteRangeSize > trackBytes {
+				high = trackBytes
+			} else {
+				high = low + byteRangeSize
+			}
 
-		byteRange := fmt.Sprintf("bytes=%d-%d", low, high)
-		req.Header.Set("Range", byteRange)
-		resp, err = client.Do(req)
-		if err != nil || resp.StatusCode != 206 {
-			return
-		}
-
-		var networkToMemoryBuffer = make([]byte, byteRangeSize)
-		_, err = io.ReadFull(resp.Body, networkToMemoryBuffer)
-		if err != nil {
-			if err != io.EOF {
-				//fmt.Println("Error taking file reader bytes and copying to temp buffer:", err)
+			byteRange := fmt.Sprintf("bytes=%d-%d", low, high)
+			req.Header.Set("Range", byteRange)
+			resp, err = client.Do(req)
+			if err != nil || resp.StatusCode != 206 {
 				return
 			}
-		}
 
-		audioDataChannel <- networkToMemoryBuffer
+			_, err = io.ReadFull(resp.Body, networkToMemoryBuffer)
+			if err != nil {
+				if err != io.EOF {
+					//fmt.Println("Error taking file reader bytes and copying to temp buffer:", err)
+					return
+				}
+			}
 
-		// If the player is not already playing the stream, start playing it
-		if !player.IsPlaying {
-			go func() { player.Play(ctx, audioReader) }()
+			audioDataChannel <- networkToMemoryBuffer
+
+			// If the player is not already playing the stream, start playing it
+			if !player.IsPlaying {
+				go func() { player.Play(ctx, audioReader) }()
+			}
 		}
-	}
+	}()
 
 	return
 }

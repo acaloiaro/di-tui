@@ -28,7 +28,7 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 type AppContext struct {
 	AudioStream    *pulse.PlaybackStream
 	CurrentChannel *components.ChannelItem
-	AudioToken     string // Audio tokens are required to play on-demand content
+	AudioToken     string // Audio tokens are used to play on-demand content
 	DifmToken      string
 	IsPlaying      bool
 	ShowStatus     bool // The status pane is visible when true

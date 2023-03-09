@@ -19,7 +19,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/hajimehoshi/oto/v2 v2.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect

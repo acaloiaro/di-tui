@@ -26,13 +26,16 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 // View - The view context
 // Status - Gets and sets current application status messages
 type AppContext struct {
-	AudioStream    *pulse.PlaybackStream
-	CurrentChannel *components.ChannelItem
-	DifmToken      string
-	IsPlaying      bool
-	ShowStatus     bool // The status pane will be visible when true
-	StatusChannel  chan components.StatusMessage
-	View           *views.ViewContext
+	AudioStream        *pulse.PlaybackStream
+	CurrentChannel     *components.ChannelItem
+	DifmToken          string
+	IsPlaying          bool
+	ShowStatus         bool // The status pane will be visible when true
+	StatusChannel      chan components.StatusMessage
+	View               *views.ViewContext
+	ChannelList        []components.ChannelItem
+	FavoriteList       []components.FavoriteItem
+	HighlightedChannel *components.ChannelItem
 }
 
 // SetStatusMessage sets the application's status message for five seconds.

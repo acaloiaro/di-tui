@@ -35,7 +35,7 @@ func main() {
 	password := viper.GetString("password")
 	var token string
 	if len(username) > 0 && len(password) > 0 {
-		difm.Authenticate(username, password)
+		difm.Authenticate(ctx, username, password)
 	}
 
 	token = config.GetToken()
@@ -54,7 +54,8 @@ func main() {
 func run() {
 	configureEventHandling()
 	updateScreenLayout()
-	configureUIComponents()
+	configureKeybindings(ctx)
+	FetchFavoritesAndChannels()
 
 	err := ctx.View.App.Run()
 
@@ -109,10 +110,21 @@ func configureEventHandling() {
 			if focus != ctx.View.FavoriteList {
 				ctx.View.App.SetFocus(ctx.View.FavoriteList)
 			}
+		case 'F':
+			current := focus.GetCurrentItem()
+			if focus == ctx.View.ChannelList {
+				ctx.HighlightedChannel = &ctx.ChannelList[current]
+			} else {
+				highlightedFavorite := ctx.FavoriteList[current]
+				ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
+			}
+			difm.ToggleFavorite(ctx)
+			FetchFavoritesAndChannels()
 		case 'q':
 			ctx.View.App.Stop()
 		case 'j': //scroll down
-			focus.SetCurrentItem(focus.GetCurrentItem() + 1)
+			current := focus.GetCurrentItem() + 1
+			focus.SetCurrentItem(current)
 		case 'k': //scroll up
 			current := focus.GetCurrentItem()
 			if current > 0 {
@@ -160,9 +172,25 @@ func configureEventHandling() {
 
 }
 
-func configureUIComponents() {
+func configureKeybindings(ctx *context.AppContext) {
+	bindings := []views.UIKeybinding{
+		views.UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
+		views.UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
+		views.UIKeybinding{Shortcut: "F", Description: "Toggle Favorite", Func: func() {}},
+		views.UIKeybinding{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
+		views.UIKeybinding{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
+		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
+		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
+		views.UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
+	}
 
-	// configure the channel list
+	ctx.View.Keybindings.Bindings = bindings
+}
+
+func FetchFavoritesAndChannels() {
+	ctx.View.ChannelList.Clear()
+	ctx.View.FavoriteList.Clear()
+
 	channels := difm.ListChannels(ctx)
 	for _, chn := range channels {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
@@ -175,27 +203,10 @@ func configureUIComponents() {
 	for _, fav := range favorites {
 		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {
 			f := favorites[ctx.View.FavoriteList.GetCurrentItem()]
-			for _, chn := range channels {
-				// favorites are prefixed with "DI.fm - <CHANNEL NAME>", shave it off before comparing
-				// TODO: this feels a bit hacky -- consider doing something else.
-				if chn.Name == f.Name[8:len(f.Name)] {
-					app.PlayChannel(&chn, ctx)
-					return
-				}
-			}
+			chn := difm.FavoriteItemChannel(ctx, f)
+			app.PlayChannel(chn, ctx)
 		})
 	}
-
-	// configure the keybinding view
-	bindings := []views.UIKeybinding{
-		views.UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
-		views.UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
-		views.UIKeybinding{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
-		views.UIKeybinding{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
-		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
-		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
-		views.UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
-	}
-
-	ctx.View.Keybindings.Bindings = bindings
+	ctx.ChannelList = channels
+	ctx.FavoriteList = favorites
 }

@@ -1,6 +1,8 @@
 package components
 
-import "time"
+import (
+	"time"
+)
 
 // ChannelItem contains di.fm channel metadata
 type ChannelItem struct {

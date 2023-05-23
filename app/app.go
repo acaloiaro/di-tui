@@ -7,7 +7,7 @@ import (
 	"image"
 	"image/color"
 	_ "image/jpeg"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 
@@ -106,12 +106,16 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 		req, _ := http.NewRequest("GET", chn.Playlist, nil)
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != 200 {
-			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s", chn.Name))
+			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
 			return
 		}
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
+			return
+		}
 		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
 			difm.Stream(streamURL, ctx)
 			ctx.IsPlaying = true

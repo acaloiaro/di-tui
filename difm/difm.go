@@ -267,6 +267,11 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 
 // ToggleFavorite adds/removes the currentlly selected channel to/from the user's favorites
 func ToggleFavorite(ctx *context.AppContext) {
+	if config.GetSessionKey() == "" {
+		ctx.SetStatusMessage("Unfortunately you must log in to di-tui with a username and password to change favorites.")
+		return
+	}
+
 	client := &http.Client{}
 	url := fmt.Sprintf("https://api.audioaddict.com/v1/di/members/%d/favorites/channel/%d", config.GetUserID(), ctx.HighlightedChannel.ID)
 
@@ -282,7 +287,6 @@ func ToggleFavorite(ctx *context.AppContext) {
 	var jsonStr = []byte(fmt.Sprintf(`{"id": %d}`, ctx.HighlightedChannel.ID))
 	req, _ := http.NewRequest(requestMethod, url, bytes.NewBuffer(jsonStr))
 
-	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0")
 	req.Header.Add("Sec-Fetch-Mode", "cors")
 	req.Header.Add("Sec-Fetch-Dest", "empty")
 	req.Header.Add("Sec-Fetch-Site", "same-origin")

@@ -6,7 +6,7 @@ require (
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
 	github.com/gdamore/tcell v1.3.0
 	github.com/hajimehoshi/go-mp3 v0.2.1
-	github.com/jfreymuth/pulse v0.0.0-20201014123913-1e525c426c93
+	github.com/jfreymuth/pulse v0.1.0
 	github.com/michiwend/gomusicbrainz v0.0.0-20181012083520-6c07e13dd396
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rivo/tview v0.0.0-20200219210816-cd38d7432498

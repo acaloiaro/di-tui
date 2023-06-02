@@ -79,6 +79,10 @@ func SaveListenToken(token string) {
 func saveConfig() {
 	viper.SetConfigFile(configFilePath())
 	viper.SetConfigType("yaml")
+
+	viper.Set("username", "")
+	viper.Set("password", "")
+
 	viper.WriteConfig()
 
 }

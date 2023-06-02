@@ -33,6 +33,7 @@ func main() {
 
 	username := viper.GetString("username")
 	password := viper.GetString("password")
+
 	var token string
 	if len(username) > 0 && len(password) > 0 {
 		difm.Authenticate(ctx, username, password)

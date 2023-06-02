@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/acaloiaro/di-tui/context"
@@ -10,32 +9,42 @@ import (
 	"github.com/jfreymuth/pulse/proto"
 )
 
-func Play(ctx *context.AppContext, stream io.Reader) (err error) {
-	d, err := mp3.NewDecoder(stream)
+func Play(ctx *context.AppContext, stream io.ReadWriter, playbackLatency int) (err error) {
+	var d *mp3.Decoder
+	d, err = mp3.NewDecoder(stream)
 	if err != nil {
 		return
 	}
 
-	c, err := pulse.NewClient()
+	var c *pulse.Client
+	c, err = pulse.NewClient()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	defer c.Close()
 
-	ctx.AudioStream, err = c.NewPlayback(
+	ctx.Player, err = c.NewPlayback(
 		// proto.FormatInt16LE convinces `pulse` to expect 2 bytes per sample; the format that go-mp3 lays out bytes
 		pulse.NewReader(d, proto.FormatInt16LE),
 		pulse.PlaybackSampleRate(d.SampleRate()),
 		pulse.PlaybackStereo,
-		pulse.PlaybackBufferSize(16482),
+		pulse.PlaybackLatency(float64(playbackLatency)),
 	)
 	if err != nil {
 		return
 	}
 
-	ctx.AudioStream.Start()
-	ctx.AudioStream.Drain()
+	ctx.Player.Start()
+	ctx.Player.Drain()
+
+	err = ctx.Player.Error()
 
 	return
+}
+
+func Stop(ctx *context.AppContext) {
+	ctx.IsPlaying = false
+	if ctx.Player != nil {
+		ctx.Player.Close()
+	}
 }

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"io"
 	"time"
 
 	"github.com/acaloiaro/di-tui/components"
@@ -26,7 +27,8 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 // View - The view context
 // Status - Gets and sets current application status messages
 type AppContext struct {
-	AudioStream        *pulse.PlaybackStream
+	AudioStream        io.ReadCloser
+	Player             *pulse.PlaybackStream
 	CurrentChannel     *components.ChannelItem
 	DifmToken          string
 	IsPlaying          bool

@@ -15,6 +15,7 @@ import (
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
+	"github.com/acaloiaro/di-tui/player"
 	"github.com/michiwend/gomusicbrainz"
 	"github.com/nfnt/resize"
 )
@@ -96,10 +97,14 @@ func convertToAscii(img image.Image, w, h int) []byte {
 // context. To clean up resources created by this function, Close() the application's audio stream.
 func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
-	// when other channels are already playing, close their stream before playing a new one
-	if ctx.AudioStream != nil {
-		ctx.AudioStream.Close()
+	player.Stop(ctx)
+
+	if chn == nil {
+		ctx.SetStatusMessage("Unable to play channel. Try again.")
+		return
 	}
+
+	ctx.IsPlaying = true
 
 	go func() {
 		client := &http.Client{}
@@ -117,10 +122,8 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 			return
 		}
 		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
-			difm.Stream(streamURL, ctx)
-			ctx.IsPlaying = true
-
 			UpdateNowPlaying(chn, ctx)
+			difm.Stream(streamURL, ctx)
 		}
 	}()
 }
@@ -129,16 +132,17 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 func TogglePause(ctx *context.AppContext) {
 
 	// nothing to do if nothing has been streamed
-	if ctx.AudioStream == nil {
+	if ctx.Player == nil {
 		return
 	}
 
-	ctx.AudioStream.Close()
-	if !ctx.IsPlaying {
+	if ctx.IsPlaying {
+		ctx.IsPlaying = false
+		ctx.AudioStream.Close()
+		player.Stop(ctx)
+	} else {
 		PlayChannel(ctx.CurrentChannel, ctx)
 	}
-
-	ctx.IsPlaying = !ctx.IsPlaying
 }
 
 // UpdateNowPlaying updates the application's now playing view with the currently playing channel and album art

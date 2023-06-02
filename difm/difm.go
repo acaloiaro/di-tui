@@ -1,6 +1,7 @@
 package difm
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/player"
@@ -146,7 +148,6 @@ func getApplicationMetadata(ctx *context.AppContext, client *http.Client) (appMe
 		appMeta = ApplicationMetadata{}
 		err = json.Unmarshal([]byte(matches[1]), &appMeta)
 		if err != nil {
-			log.Println(err)
 			return
 		}
 	}
@@ -181,8 +182,7 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 	req, _ := http.NewRequest("GET", "https://api.audioaddict.com/v1/di/currently_playing", nil)
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
-		msg := fmt.Sprintf("Unable to fetch currently playing track info: %v", resp.StatusCode)
-		ctx.SetStatusMessage(msg)
+		ctx.SetStatusMessage("Unable to fetch currently playing track info")
 		return
 	}
 	defer resp.Body.Close()
@@ -302,19 +302,45 @@ func ToggleFavorite(ctx *context.AppContext) {
 
 // Stream streams the provided URL using the given di.fm premium token
 func Stream(url string, ctx *context.AppContext) {
-	client := &http.Client{}
+	client := http.DefaultClient
 	u := fmt.Sprintf("%s?%s", url, config.GetToken())
-	req, _ := http.NewRequest("GET", u, nil)
-	resp, err := client.Do(req)
-	if err != nil || resp.StatusCode != 200 {
-		ctx.SetStatusMessage("There was a problem streaming audio.")
-		return
-	}
 
-	go func() { player.Play(ctx, resp.Body) }()
-	if err != nil {
-		ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
-		return
+	// Keep increasing playback latency by one second for every time that the player exits with EOF
+	// while ctx.IsPlaying
+	for playbackLatency := 1; ctx.IsPlaying; playbackLatency++ {
+		ctx.SetStatusMessage("Buffering stream...")
+		if ctx.Player != nil {
+			ctx.Player.Close()
+		}
+
+		req, _ := http.NewRequest("GET", u, nil)
+		resp, err := client.Do(req)
+		if err != nil || resp.StatusCode != 200 {
+			ctx.SetStatusMessage("There was a problem streaming audio.")
+			return
+		}
+
+		ctx.AudioStream = resp.Body
+		audioBytes := &bytes.Buffer{}
+		audioStream := bufio.NewReadWriter(bufio.NewReader(audioBytes), bufio.NewWriter(audioBytes))
+
+		go func() {
+			for {
+				_, err = io.CopyN(audioStream, resp.Body, 512)
+				if err != nil {
+					return
+				}
+			}
+		}()
+
+		time.Sleep(time.Duration(playbackLatency) * time.Second)
+		err = player.Play(ctx, audioStream, playbackLatency)
+		if err == nil {
+			return
+		} else {
+			resp.Body.Close()
+			continue
+		}
 	}
 }
 

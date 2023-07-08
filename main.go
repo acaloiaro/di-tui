@@ -12,17 +12,12 @@ import (
 	"github.com/acaloiaro/di-tui/views"
 	"github.com/rivo/tview"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 var ctx *context.AppContext
-
-func init() {
-	// when true color is on, tcell does not respect your terminal colors
-	os.Setenv("TCELL_TRUECOLOR", "disable")
-}
 
 func main() {
 	pflag.String("username", "", "your di.fm username")
@@ -55,8 +50,9 @@ func main() {
 func run() {
 	configureEventHandling()
 	updateScreenLayout()
-	configureKeybindings(ctx)
 	FetchFavoritesAndChannels()
+
+	ctx.View.Keybindings.Bindings = views.GetKeybindings()
 
 	err := ctx.View.App.Run()
 
@@ -171,21 +167,6 @@ func configureEventHandling() {
 		}
 	}()
 
-}
-
-func configureKeybindings(ctx *context.AppContext) {
-	bindings := []views.UIKeybinding{
-		views.UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
-		views.UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
-		views.UIKeybinding{Shortcut: "F", Description: "Toggle Favorite", Func: func() {}},
-		views.UIKeybinding{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
-		views.UIKeybinding{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
-		views.UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
-		views.UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
-		views.UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
-	}
-
-	ctx.View.Keybindings.Bindings = bindings
 }
 
 func FetchFavoritesAndChannels() {

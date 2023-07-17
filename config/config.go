@@ -8,6 +8,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+// TODO This application is migrating to having all of its configuration read into this `Config` struct, rather than
+// using individual `ReadType` functions from viper. Migrating all `Get*` methods to use `Config` instead.
+type Config struct {
+	Theme map[string]string
+}
+
+var C Config
+
 func init() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -20,6 +28,11 @@ func init() {
 	err := viper.ReadInConfig()
 	if err != nil {
 		saveConfig()
+	}
+
+	if err := viper.Unmarshal(&C); err != nil {
+		fmt.Fprintf(os.Stderr, "unable to load di-tui configuration file: %v", err)
+		os.Exit(1)
 	}
 }
 
@@ -74,6 +87,35 @@ func SaveListenToken(token string) {
 	viper.Set("token", token)
 
 	saveConfig()
+}
+
+// HasTheme returns true if the di-tui config has a Theme set
+func HasTheme() bool {
+	if C.Theme["primary_color"] != "" {
+		return true
+	} else {
+		return false
+	}
+}
+
+// GetThemePrimaryColor gets the theme's primary color
+func GetThemePrimaryColor() string {
+	return C.Theme["primary_color"]
+}
+
+// GetThemePrimaryColor gets the theme's background color
+func GetThemeBackgroundColor() string {
+	return C.Theme["background_color"]
+}
+
+// GetThemePrimaryTextColor gets the theme's primary text color
+func GetThemePrimaryTextColor() string {
+	return C.Theme["primary_text_color"]
+}
+
+// GetThemePrimaryColor gets the theme's primary color
+func GetThemeSecondaryTextColor() string {
+	return C.Theme["secondary_text_color"]
 }
 
 func saveConfig() {

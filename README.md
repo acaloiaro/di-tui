@@ -37,8 +37,11 @@ If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zs
 echo "export PATH=$PATH:$GOPATH/bin" >> ~/.bashrc
 source ~/.bashrc
 ```
+### Run with `nix run`
 
-If your `$GOPATH` is not set, see https://github.com/golang/go/wiki/SettingGOPATH
+```
+nix run github:acaloiaro/di-tui
+```
 
 ## Authenticate
 

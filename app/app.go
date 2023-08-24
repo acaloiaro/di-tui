@@ -8,6 +8,7 @@ import (
 	"image/color"
 	_ "image/jpeg"
 	"io"
+	"math"
 	"net/http"
 	"reflect"
 
@@ -21,8 +22,7 @@ import (
 )
 
 // Art fetches album art for the given track, converts it to ASCII, and return the ASCII stringified album art
-func Art(artist, track string) (art string, err error) {
-
+func Art(ctx *context.AppContext, artist, track string) (art string, err error) {
 	if !config.AlbumArt() {
 		return
 	}
@@ -33,7 +33,6 @@ func Art(artist, track string) (art string, err error) {
 		"di-tui",
 		"0.0.1",
 		"https://github.com/acaloiaro/di-tui")
-
 	if err != nil {
 		return
 	}
@@ -60,8 +59,9 @@ func Art(artist, track string) (art string, err error) {
 		return
 	}
 
-	// TODO: Consider the current window size when calculating width
-	art = string(convertToAscii(scaleImage(img, 40)))
+	_, _, windowWidth, windowHeight := ctx.View.NowPlaying.GetRect()
+	scaleSize := math.Min(float64(windowWidth), float64(windowHeight))
+	art = string(convertToAscii(scaleImage(img, int(scaleSize))))
 
 	return
 }
@@ -74,7 +74,7 @@ func scaleImage(img image.Image, w int) (image.Image, int, int) {
 }
 
 func convertToAscii(img image.Image, w, h int) []byte {
-	var ASCIISTR = "MND8OZ$7I?+=~:,.."
+	ASCIISTR := "MND8OZ$7I?+=~:,.."
 	table := []byte(ASCIISTR)
 	buf := new(bytes.Buffer)
 
@@ -96,7 +96,6 @@ func convertToAscii(img image.Image, w, h int) []byte {
 // This function is *asynchronous* and creates a single streaming resource: the audio stream held by the application
 // context. To clean up resources created by this function, Close() the application's audio stream.
 func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
-
 	player.Stop(ctx)
 
 	if chn == nil {
@@ -130,7 +129,6 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 
 // TogglePause pauses/unpauses audio when a channel is playing
 func TogglePause(ctx *context.AppContext) {
-
 	// nothing to do if nothing has been streamed
 	if ctx.Player == nil {
 		return
@@ -157,7 +155,7 @@ func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
 			ctx.View.NowPlaying.Track = cp.Track
 		})
 
-		albumArt, err := Art(cp.Track.Artist, cp.Track.Title)
+		albumArt, err := Art(ctx, cp.Track.Artist, cp.Track.Title)
 		if err != nil {
 			return
 		}

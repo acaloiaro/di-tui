@@ -1,7 +1,7 @@
 # di-tui
 A simple terminal UI player for [di.fm Premium](http://di.fm)
 
-![App Screenshot](https://user-images.githubusercontent.com/3331648/81481515-bb668400-91fe-11ea-8a7c-39e1bb76c55d.png)
+![App Screenshot](https://github.com/acaloiaro/di-tui/assets/3331648/5b85343f-d098-48d8-ae98-4bd1e99e0a8b)
 
 ## Dependencies
 

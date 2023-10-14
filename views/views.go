@@ -11,12 +11,14 @@ import (
 	"github.com/rivo/tview"
 )
 
-var primaryTextColorString string
-var secondaryTextColorString string
-var primaryColor tcell.Color
-var backgroundColor tcell.Color
-var primaryTextColor tcell.Color
-var secondaryTextColor tcell.Color
+var (
+	primaryTextColorString   string
+	secondaryTextColorString string
+	primaryColor             tcell.Color
+	backgroundColor          tcell.Color
+	primaryTextColor         tcell.Color
+	secondaryTextColor       tcell.Color
+)
 
 func init() {
 	if config.HasTheme() {
@@ -125,7 +127,6 @@ func (n *NowPlayingView) Draw(screen tcell.Screen) {
 }
 
 func (n *NowPlayingView) elapsedString() (str string) {
-
 	if n.Elapsed >= 0 {
 		minutes := int(n.Elapsed / 60)
 		seconds := int(n.Elapsed) % 60
@@ -137,7 +138,6 @@ func (n *NowPlayingView) elapsedString() (str string) {
 
 // Draw draws a NowPlayingView onto the scren
 func (s *StatusView) Draw(screen tcell.Screen) {
-
 	s.Box.Draw(screen)
 	s.Box.SetBackgroundColor(backgroundColor)
 
@@ -240,14 +240,15 @@ func createStatusView() *StatusView {
 
 func GetKeybindings() (bindings []UIKeybinding) {
 	bindings = []UIKeybinding{
-		UIKeybinding{Shortcut: "c", Description: "Channels", Func: func() {}},
-		UIKeybinding{Shortcut: "f", Description: "Favorites", Func: func() {}},
-		UIKeybinding{Shortcut: "F", Description: "Toggle Favorite", Func: func() {}},
-		UIKeybinding{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
-		UIKeybinding{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
-		UIKeybinding{Shortcut: "q", Description: "Quit", Func: func() {}},
-		UIKeybinding{Shortcut: "p", Description: "Pause", Func: func() {}},
-		UIKeybinding{Shortcut: "Enter", Description: "Play", Func: func() {}},
+		{Shortcut: "c", Description: "Channels", Func: func() {}},
+		{Shortcut: "f", Description: "Favorites", Func: func() {}},
+		{Shortcut: "F", Description: "Toggle Favorite", Func: func() {}},
+		{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
+		{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
+		{Shortcut: "q", Description: "Quit", Func: func() {}},
+		{Shortcut: "p", Description: "Pause", Func: func() {}},
+		{Shortcut: "Space", Description: "Pause", Func: func() {}},
+		{Shortcut: "Enter", Description: "Play", Func: func() {}},
 	}
 
 	return bindings

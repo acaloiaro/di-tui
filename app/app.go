@@ -95,7 +95,7 @@ func convertToAscii(img image.Image, w, h int) []byte {
 // If a channel is already playing, the old stream is stopped first, clearing up resources.
 // This function is *asynchronous* and creates a single streaming resource: the audio stream held by the application
 // context. To clean up resources created by this function, Close() the application's audio stream.
-func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
+func PlayChannel(ctx *context.AppContext, chn *components.ChannelItem) {
 	player.Stop(ctx)
 
 	if chn == nil {
@@ -121,7 +121,7 @@ func PlayChannel(chn *components.ChannelItem, ctx *context.AppContext) {
 			return
 		}
 		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
-			UpdateNowPlaying(chn, ctx)
+			UpdateNowPlaying(ctx, chn)
 			difm.Stream(streamURL, ctx)
 		}
 	}()
@@ -139,13 +139,13 @@ func TogglePause(ctx *context.AppContext) {
 		ctx.AudioStream.Close()
 		player.Stop(ctx)
 	} else {
-		PlayChannel(ctx.CurrentChannel, ctx)
+		PlayChannel(ctx, ctx.CurrentChannel)
 	}
 }
 
 // UpdateNowPlaying updates the application's now playing view with the currently playing channel and album art
 // Artist and track information are fetched separately from album art, allowing for a more responsive UI
-func UpdateNowPlaying(chn *components.ChannelItem, ctx *context.AppContext) {
+func UpdateNowPlaying(ctx *context.AppContext, chn *components.ChannelItem) {
 	go func() {
 		ctx.CurrentChannel = chn
 		cp := difm.GetCurrentlyPlaying(ctx)

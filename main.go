@@ -55,7 +55,6 @@ func run() {
 	ctx.View.Keybindings.Bindings = views.GetKeybindings()
 
 	err := ctx.View.App.Run()
-
 	if err != nil {
 		panic(err)
 	}
@@ -98,37 +97,49 @@ func configureEventHandling() {
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		focus := ctx.View.App.GetFocus().(*tview.List)
 
-		switch event.Rune() {
-		case 'c':
-			if focus != ctx.View.ChannelList {
-				ctx.View.App.SetFocus(ctx.View.ChannelList)
-			}
-		case 'f':
-			if focus != ctx.View.FavoriteList {
-				ctx.View.App.SetFocus(ctx.View.FavoriteList)
-			}
-		case 'F':
+		switch event.Key() {
+		case tcell.KeyEnter:
 			current := focus.GetCurrentItem()
-			if focus == ctx.View.ChannelList {
-				ctx.HighlightedChannel = &ctx.ChannelList[current]
-			} else {
+			if focus != ctx.View.ChannelList {
 				highlightedFavorite := ctx.FavoriteList[current]
 				ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
+			} else {
+				ctx.HighlightedChannel = &ctx.ChannelList[current]
 			}
-			difm.ToggleFavorite(ctx)
-			FetchFavoritesAndChannels()
-		case 'q':
-			ctx.View.App.Stop()
-		case 'j': //scroll down
-			current := focus.GetCurrentItem() + 1
-			focus.SetCurrentItem(current)
-		case 'k': //scroll up
-			current := focus.GetCurrentItem()
-			if current > 0 {
-				focus.SetCurrentItem(current - 1)
+			app.PlayChannel(ctx, ctx.HighlightedChannel)
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 'c':
+				if focus != ctx.View.ChannelList {
+					ctx.View.App.SetFocus(ctx.View.ChannelList)
+				}
+			case 'f':
+				if focus != ctx.View.FavoriteList {
+					ctx.View.App.SetFocus(ctx.View.FavoriteList)
+				}
+			case 'F':
+				current := focus.GetCurrentItem()
+				if focus == ctx.View.ChannelList {
+					ctx.HighlightedChannel = &ctx.ChannelList[current]
+				} else {
+					highlightedFavorite := ctx.FavoriteList[current]
+					ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
+				}
+				difm.ToggleFavorite(ctx)
+				FetchFavoritesAndChannels()
+			case 'q':
+				ctx.View.App.Stop()
+			case 'j': // scroll down
+				current := focus.GetCurrentItem() + 1
+				focus.SetCurrentItem(current)
+			case 'k': // scroll up
+				current := focus.GetCurrentItem()
+				if current > 0 {
+					focus.SetCurrentItem(current - 1)
+				}
+			case 'p', 32: // tcell has no constant for the space bar rune (32)
+				app.TogglePause(ctx)
 			}
-		case 'p': // pause/resume
-			app.TogglePause(ctx)
 		}
 
 		return event
@@ -143,7 +154,7 @@ func configureEventHandling() {
 			// If the current time is past the end of the track, then a new track is playing and the now playing track needs
 			// to be refreshed.
 			if ctx.View.NowPlaying.Track.Duration > 0 && ctx.View.NowPlaying.Track.Duration < elapsed.Seconds() {
-				app.UpdateNowPlaying(ctx.CurrentChannel, ctx)
+				app.UpdateNowPlaying(ctx, ctx.CurrentChannel)
 			}
 
 			if ctx.CurrentChannel != nil && elapsed.Seconds() > 0 {
@@ -166,7 +177,6 @@ func configureEventHandling() {
 			updateScreenLayout() // remove the status pane from the screen
 		}
 	}()
-
 }
 
 func FetchFavoritesAndChannels() {
@@ -176,18 +186,12 @@ func FetchFavoritesAndChannels() {
 	channels := difm.ListChannels(ctx)
 	for _, chn := range channels {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
-			chn := channels[ctx.View.ChannelList.GetCurrentItem()]
-			app.PlayChannel(&chn, ctx)
 		})
 	}
 
 	favorites := difm.ListFavorites(ctx)
 	for _, fav := range favorites {
-		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {
-			f := favorites[ctx.View.FavoriteList.GetCurrentItem()]
-			chn := difm.FavoriteItemChannel(ctx, f)
-			app.PlayChannel(chn, ctx)
-		})
+		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {})
 	}
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites

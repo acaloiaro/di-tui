@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -17,41 +18,38 @@ import (
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
 	"github.com/acaloiaro/di-tui/player"
-	"github.com/michiwend/gomusicbrainz"
 	"github.com/nfnt/resize"
 )
 
 // Art fetches album art for the given track, converts it to ASCII, and return the ASCII stringified album art
-func Art(ctx *context.AppContext, artist, track string) (art string, err error) {
+func Art(ctx *context.AppContext, cp components.Track) (art string, err error) {
 	if !config.AlbumArt() {
 		return
 	}
 
-	// create a new WS2Client.
-	client, err := gomusicbrainz.NewWS2Client(
-		"https://musicbrainz.org/ws/2",
-		"di-tui",
-		"0.0.1",
-		"https://github.com/acaloiaro/di-tui")
+	// download track details
+	var resp *http.Response
+	url := fmt.Sprintf("https://api.audioaddict.com/v1/di/tracks/%d", cp.ID)
+	resp, err = http.Get(url)
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
-	// search musicbrainz for a matching artist/track
-	searchString := fmt.Sprintf(`artist:"%s" release:"%s"`, artist, track)
-	mbResp, _ := client.SearchRelease(searchString, 1, -1)
-	if len(mbResp.Releases) == 0 {
-		err = fmt.Errorf("no releases found for the artist (%s) and track (%s)", artist, track)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil || resp.StatusCode != 200 {
 		return
 	}
+	var trackDetails components.TrackDetails
+	json.Unmarshal(body, &trackDetails)
 
 	// fetch the album art and convert it to ascii
-	release := mbResp.Releases[0]
-	url := fmt.Sprintf("http://coverartarchive.org/release/%s/front", release.ID)
-	resp, err := http.Get(url)
+	url = fmt.Sprintf("https:%s", trackDetails.AlbumArtURL)
+	resp, err = http.Get(url)
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
 	img, format, err := image.Decode(resp.Body)
 	if format != "jpeg" && format != "png" || err != nil {
@@ -155,7 +153,7 @@ func UpdateNowPlaying(ctx *context.AppContext, chn *components.ChannelItem) {
 			ctx.View.NowPlaying.Track = cp.Track
 		})
 
-		albumArt, err := Art(ctx, cp.Track.Artist, cp.Track.Title)
+		albumArt, err := Art(ctx, cp.Track)
 		if err != nil {
 			return
 		}

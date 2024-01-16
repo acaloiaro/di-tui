@@ -19,6 +19,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
+      - name: Update default.nix
+        uses: MathieuSoysal/file-updater-for-release@v1.0.3
+        with:
+          files: default.nix # List of files to update
+          prefix: "version = \"" # Prefix before the version, default is: ""
+          with-checkout: false # If you don't want to checkout the repo, default is: true
+      - name: Push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          add: default.nix
+          message: 'Update default.nix with latest version number'
       - name: Set up Go
         uses: actions/setup-go@v2
         with:

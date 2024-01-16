@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT_TOKEN }} # Needs write access to the repo
-          ref: main
+          ref: master 
       - name: Update defaultnix
         uses: MathieuSoysal/file-updater-for-release@v1.0.3
         with:

@@ -16,7 +16,7 @@ jobs:
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
       - name: Set up Go
@@ -29,4 +29,4 @@ jobs:
           version: latest
           args: release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_TOKEN }}

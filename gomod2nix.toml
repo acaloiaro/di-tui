@@ -13,6 +13,9 @@ schema = 3
   [mod."github.com/gdamore/tcell/v2"]
     version = "v2.6.0"
     hash = "sha256-4hnWoGV4CkvuTTuro/lCrLjSYDOQ/kRJb9hZ+lCERgQ="
+  [mod."github.com/godbus/dbus/v5"]
+    version = "v5.1.0"
+    hash = "sha256-xOCMJpQK3KTmHTPn/CdqI4j0eENCtMmJDgAIoYqYOEY="
   [mod."github.com/gopherjs/gopherjs"]
     version = "v0.0.0-20200217142428-fce0ec30dd00"
     hash = "sha256-ANhBGliYOofQHg0tad2aL11pF4fmVaAocET9m1l+oFY="
@@ -46,6 +49,9 @@ schema = 3
   [mod."github.com/pelletier/go-toml"]
     version = "v1.6.0"
     hash = "sha256-mVLY2MQ69LPAiPEKpzeao1LWWoSF7iFwQM7+a0N23Do="
+  [mod."github.com/quarckster/go-mpris-server"]
+    version = "v1.0.3"
+    hash = "sha256-Lljw/O+MV0xNdouhD1na7Ay/TltCSWP6JexpuyIOskM="
   [mod."github.com/rivo/tview"]
     version = "v0.0.0-20230621164836-6cc0565babaf"
     hash = "sha256-fhUmhx+ZqEEkFM/ZHkr/FpFEnpbgm1C+Yz3st19GT00="

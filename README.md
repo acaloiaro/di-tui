@@ -61,6 +61,27 @@ album_art: <BOOLEAN>
 | token | Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
 | album_art | Turn album art on or off |
 
+## MPRIS/D-bus support 
+
+MPRIS is a D-Bus specification allowing media players to be controlled in a standardized way, e.g. with `playerctl`. 
+
+`di-tui` supports a very limited set of MPRIS commands. The limited set is to to the fact that `di-tui` is a streaming audio player, and it doesn't make sense to support `next`, `previous`, `seek`, etc., because audio streams have no next or previous track; or the ability to seek forward. 
+
+### Supported MPRIS commands
+
+`play-pause` Toggles Play/Pause, e.g. `playerctl --player=di-tui play-pause` toggles play/pause on di-tui if it's the active player 
+
+### Supported MPRIS metadata
+
+`track` The currently playing track
+
+`artist` The currently playing artist 
+
+`status` The status of the player, e.g. `playing`, `paused`, `stopped`
+
+`playerName` The name of the player: `di-tui`
+
+
 ## Configuration
 
 ### Themes

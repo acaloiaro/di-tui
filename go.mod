@@ -5,9 +5,11 @@ go 1.19
 require (
 	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
 	github.com/gdamore/tcell/v2 v2.6.0
+	github.com/godbus/dbus/v5 v5.1.0
 	github.com/hajimehoshi/go-mp3 v0.2.1
 	github.com/jfreymuth/pulse v0.1.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/quarckster/go-mpris-server v1.0.3
 	github.com/rivo/tview v0.0.0-20230621164836-6cc0565babaf
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2

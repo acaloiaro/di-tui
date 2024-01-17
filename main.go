@@ -9,10 +9,10 @@ import (
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
+	"github.com/acaloiaro/di-tui/mpris"
 	"github.com/acaloiaro/di-tui/views"
-	"github.com/rivo/tview"
-
 	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -93,6 +93,7 @@ func updateScreenLayout() {
 		SetFocus(focusView)
 }
 
+// configureEventHandling handles key press events, and regular UI updates such as the currently playing track
 func configureEventHandling() {
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		focus := ctx.View.App.GetFocus().(*tview.List)
@@ -177,6 +178,9 @@ func configureEventHandling() {
 			updateScreenLayout() // remove the status pane from the screen
 		}
 	}()
+
+	// Start the mpris server for d-bus support
+	mpris.Start(ctx)
 }
 
 func FetchFavoritesAndChannels() {

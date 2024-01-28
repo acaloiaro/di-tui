@@ -107,7 +107,7 @@ func configureEventHandling() {
 			} else {
 				ctx.HighlightedChannel = &ctx.ChannelList[current]
 			}
-			app.PlayChannel(ctx, ctx.HighlightedChannel)
+			app.Play(ctx)
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'c':
@@ -199,4 +199,10 @@ func FetchFavoritesAndChannels() {
 	}
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites
+
+	// default the highlighted channel to the first favorite; even before users select a channel manually. This way,
+	// when di-tui starts and the user presses the "Play" media key, di-tui will start playing the first favorite
+	// instead of requiring them to choose the channel to be played
+	highlightedFavorite := ctx.FavoriteList[0]
+	ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
 }

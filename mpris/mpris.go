@@ -84,10 +84,22 @@ func (p Player) PlayPause() error {
 }
 
 func (p Player) Stop() error {
+	app.Stop(p.ctx)
+
+	status := map[string]dbus.Variant{
+		"PlaybackStatus": dbus.MakeVariant(types.PlaybackStatusStopped),
+	}
+	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", status, []string{})
+
 	return nil
 }
 
 func (p Player) Play() error {
+	app.Play(p.ctx)
+	status := map[string]dbus.Variant{
+		"PlaybackStatus": dbus.MakeVariant(types.PlaybackStatusPlaying),
+	}
+	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", status, []string{})
 	return nil
 }
 
@@ -181,7 +193,6 @@ func Start(ctx *context.AppContext) {
 	r := Root{}
 	p := Player{ctx: ctx, metaData: metaData}
 	s = server.NewServer("di-tui", r, p)
-	// _ = events.NewEventHandler(s)
 	go s.Listen()
 	go func() {
 		for {

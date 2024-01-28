@@ -89,12 +89,13 @@ func convertToAscii(img image.Image, w, h int) []byte {
 	return buf.Bytes()
 }
 
-// PlayChannel begins streaming the provided channel after fetching its playlist
+// Play begins streaming the provided channel after fetching its playlist
 // If a channel is already playing, the old stream is stopped first, clearing up resources.
 // This function is *asynchronous* and creates a single streaming resource: the audio stream held by the application
 // context. To clean up resources created by this function, Close() the application's audio stream.
-func PlayChannel(ctx *context.AppContext, chn *components.ChannelItem) {
+func Play(ctx *context.AppContext) {
 	player.Stop(ctx)
+	chn := ctx.HighlightedChannel
 
 	if chn == nil {
 		ctx.SetStatusMessage("Unable to play channel. Try again.")
@@ -125,6 +126,11 @@ func PlayChannel(ctx *context.AppContext, chn *components.ChannelItem) {
 	}()
 }
 
+// Stop stops playback
+func Stop(ctx *context.AppContext) {
+	player.Stop(ctx)
+}
+
 // TogglePause pauses/unpauses audio when a channel is playing
 func TogglePause(ctx *context.AppContext) {
 	// nothing to do if nothing has been streamed
@@ -137,7 +143,7 @@ func TogglePause(ctx *context.AppContext) {
 		ctx.AudioStream.Close()
 		player.Stop(ctx)
 	} else {
-		PlayChannel(ctx, ctx.CurrentChannel)
+		Play(ctx)
 	}
 }
 

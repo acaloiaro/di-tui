@@ -47,6 +47,9 @@ nix run github:acaloiaro/di-tui
 
 There are two authentication options
 
+**NOTE** di.fm has started using Cloudflare on di.fm, which prevents `di-tui` from logging in with username and password. This also prevents adding/removing favorites within di-tui, since that functionality requires a credential that's separate from di.fm's "listen key", and only available by logging in with username/password. Use your Listen Key if you're a new `di-tui` user. If you've previously logged in with username and password, you'll remain logged in as long as `~/.config/di-tui/config.yml` remains in place. 
+
+
 - Enter your username and password directly into `di-tui`
 - If you're justifiably uncomfortable with entering your username/password into this application, copy your "Listen Key" from (https://www.di.fm/settings) and create the following file:
 

@@ -2,3 +2,5 @@
 result
 .direnv/
 .envrc
+.devenv 
+.pre-commit-config.yaml

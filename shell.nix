@@ -19,7 +19,7 @@ in
     packages = [
       goEnv
       gomod2nix
-      pkgs.go_1_21
+      pkgs.go_1_22
       pkgs.pre-commit
     ];
   }

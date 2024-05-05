@@ -26,16 +26,17 @@
   } @ inputs: let
     forEachSystem = nixpkgs.lib.genAttrs (import systems);
   in {
-    devShells = forEachSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-      # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
-      # This has no effect on other platforms.
-      callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
+    packages = forEachSystem (system: let
+      callPackage = nixpkgs.darwin.apple_sdk_11_0.callPackage or nixpkgs.legacyPackages.${system}.callPackage;
     in {
-      packages.default = callPackage ./. {
+      default = callPackage ./. {
         inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
       };
+    });
 
+    devShells = forEachSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
       default = devenv.lib.mkShell {
         inherit inputs pkgs;
         modules = [

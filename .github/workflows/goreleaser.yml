@@ -25,8 +25,8 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "Github Actions"
           go install git.sr.ht/~jcmuller/semver-bumper@latest
-          OLD_TAG=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' | semver-bumper -s)
-          NEW_TAG=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' | semver-bumper --increment minor)
+          OLD_TAG=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' --sort='authordate' | semver-bumper -s)
+          NEW_TAG=$(echo $OLD_TAG | semver-bumper --increment patch)
           sed -i "s/$OLD_TAG/$NEW_TAG/g" default.nix
           git add default.nix
           git commit -m "Bump version in default.nix" --allow-empty

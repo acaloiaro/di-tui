@@ -43,6 +43,17 @@ There are two authentication options
 - Enter your username and password directly into `di-tui` with the `--username` and `--password` switches
 - If you're justifiably uncomfortable with entering your username/password into this application, copy your "Listen Key" from (https://www.di.fm/settings) and create the following file:
 
+#### ~/.config/di-tui/config.yml
+```yml
+token: <YOUR LISTEN KEY>
+album_art: <BOOLEAN>
+```
+
+| key | description |
+| --- | ----------- |
+| token | **string** Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
+| album_art |  **boolean** Enable/disable audio art |
+
 ### Choose a network 
 
 DI.fm is the default network, but other audio addict networks can be chosen with the `--network` switch. 
@@ -55,17 +66,6 @@ DI.fm is the default network, but other audio addict networks can be chosen with
 | rockradio |  Rock Radio [https://rockradio.com](https://rockradio.com)|
 | jazzradio | Jazz Radio [https://jazzradio.com](https://jazzradio.com)|
 | zenradio |  Zen Radio [https://zenradio.com](https://zenradio.com)|
-
-#### ~/.config/di-tui/config.yml
-```yml
-token: <YOUR LISTEN KEY>
-album_art: <BOOLEAN>
-```
-
-| key | description |
-| --- | ----------- |
-| token | **string** Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
-| album_art |  **boolean** Enable/disable audio art |
 
 ## Dependencies
 

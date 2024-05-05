@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+// Network is an audio addict network
+type Network struct {
+	ListenURL string
+	Name      string
+	ShortName string // the name used in API URL paths
+}
+
 // ChannelItem contains di.fm channel metadata
 type ChannelItem struct {
 	ID       int64  `json:"id"`

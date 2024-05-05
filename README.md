@@ -1,27 +1,18 @@
 # di-tui
+
 A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 ![App Screenshot](https://github.com/acaloiaro/di-tui/assets/3331648/5b85343f-d098-48d8-ae98-4bd1e99e0a8b)
 
-## Dependencies
+This app began as di.fm player, but now supports the whole Audio Addict network
 
-### PulseAudio
+- Classical Radio
+- DI.fm
+- Radio Tunes
+- Rock Radio
+- Jazz Radio
+- Zen Radio
 
-Both linux and MacOS depend on pulseaudio to be running.
-
-#### MacOS
-
-By default, pulseaudio on MacOS runs as "root", which is not ideal. PulseAudio is best run by non-root users. By symbolically linking the pulseaudio plist file into your user's `~/Library/LaunchAgents/`, it runs as your user.
-
-```
-brew install pulseaudio
-ln -s $(brew info pulseaudio | grep "/usr/local/Cellar" | awk '{print $1}')//homebrew.mxcl.pulseaudio.plist ~/Library/LaunchAgents
-brew services start pulseaudio
-```
-
-#### Debian / Ubuntu
-
-`apt install pulseaudio`
 
 ## Install
 
@@ -43,17 +34,29 @@ source ~/.bashrc
 nix run github:acaloiaro/di-tui
 ```
 
-## Authenticate
+## Usage
+
+### Authenticate
 
 There are two authentication options
 
-**NOTE** di.fm has started using Cloudflare on di.fm, which prevents `di-tui` from logging in with username and password. This also prevents adding/removing favorites within di-tui, since that functionality requires a credential that's separate from di.fm's "listen key", and only available by logging in with username/password. Use your Listen Key if you're a new `di-tui` user. If you've previously logged in with username and password, you'll remain logged in as long as `~/.config/di-tui/config.yml` remains in place. 
-
-
-- Enter your username and password directly into `di-tui`
+- Enter your username and password directly into `di-tui` with the `--username` and `--password` switches
 - If you're justifiably uncomfortable with entering your username/password into this application, copy your "Listen Key" from (https://www.di.fm/settings) and create the following file:
 
-### ~/.config/di-tui/config.yml
+### Choose a network 
+
+DI.fm is the default network, but other audio addict networks can be chosen with the `--network` switch. 
+
+| switch value | network |
+| --- | ----------- |
+| classicalradio | Classical Radio [https://classicalradio.com](https://classicalradio.com) |
+| di | DI.fm [https://di.fm](https://di.fm) |
+| radiotunes | Radio Tunes [https://radiotunes.com](https://radiotunes.com) |
+| rockradio |  Rock Radio [https://rockradio.com](https://rockradio.com)|
+| jazzradio | Jazz Radio [https://jazzradio.com](https://jazzradio.com)|
+| zenradio |  Zen Radio [https://zenradio.com](https://zenradio.com)|
+
+#### ~/.config/di-tui/config.yml
 ```yml
 token: <YOUR LISTEN KEY>
 album_art: <BOOLEAN>
@@ -61,14 +64,34 @@ album_art: <BOOLEAN>
 
 | key | description |
 | --- | ----------- |
-| token | Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
-| album_art | Turn album art on or off |
+| token | **string** Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
+| album_art |  **boolean** Enable/disable audio art |
+
+## Dependencies
+
+### PulseAudio
+
+Both linux and MacOS depend on pulseaudio to be running.
+
+#### MacOS
+
+By default, pulseaudio on MacOS runs as "root", which is not ideal. PulseAudio is best run by non-root users. By symbolically linking the pulseaudio plist file into your user's `~/Library/LaunchAgents/`, it runs as your user.
+
+```
+brew install pulseaudio
+ln -s $(brew info pulseaudio | grep "/usr/local/Cellar" | awk '{print $1}')//homebrew.mxcl.pulseaudio.plist ~/Library/LaunchAgents
+brew services start pulseaudio
+```
+
+#### Debian / Ubuntu
+
+`apt install pulseaudio`
 
 ## MPRIS/D-bus support 
 
 MPRIS is a D-Bus specification allowing media players to be controlled in a standardized way, e.g. with `playerctl`. 
 
-`di-tui` supports a very limited set of MPRIS commands. The limited set is to to the fact that `di-tui` is a streaming audio player, and it doesn't make sense to support `next`, `previous`, `seek`, etc., because audio streams have no next or previous track; or the ability to seek forward. 
+`di-tui` supports a very limited set of MPRIS commands. The limited set is due to the fact that `di-tui` is a streaming audio player, and it doesn't make sense to support `next`, `previous`, `seek`, etc., because audio streams have no next or previous track; or the ability to seek forward. 
 
 ### Supported MPRIS commands
 
@@ -83,7 +106,6 @@ MPRIS is a D-Bus specification allowing media players to be controlled in a stan
 `status` The status of the player, e.g. `playing`, `paused`, `stopped`
 
 `playerName` The name of the player: `di-tui`
-
 
 ## Configuration
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/acaloiaro/di-tui/components"
 	"github.com/spf13/viper"
 )
 
@@ -24,6 +25,7 @@ func init() {
 	viper.AddConfigPath(".")
 
 	viper.SetDefault("album_art", true)
+	viper.SetDefault("network.shortname", "di")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -85,6 +87,20 @@ func SaveUserID(userID int64) {
 // SaveListenToken saves the user's listen token
 func SaveListenToken(token string) {
 	viper.Set("token", token)
+
+	saveConfig()
+}
+
+// SaveAPIKey saves the user's API key
+func SaveAPIKey(key string) {
+	viper.Set("api_key", key)
+
+	saveConfig()
+}
+
+// SaveNetwork saves the user's default network
+func SaveNetwork(network *components.Network) {
+	viper.Set("network", network)
 
 	saveConfig()
 }

@@ -21,23 +21,25 @@ func CreateAppContext(view *views.ViewContext) *AppContext {
 
 // AppContext is a shared context to be shared across the application
 // AudioStream - The raw audio stream from which audio is streamed by the player
-// CurrentChannel - The ChannelItem representing the currently playing di.fm channel
-// DfmToken - The token used to authenticate to di.fm
+// CurrentChannel - The ChannelItem representing the currently playing on the network
+// DfmToken - The token used to authenticate to the network
 // IsPlaying - Is there audio playing?
+// Netowrk - the network to connect to
 // View - The view context
 // Status - Gets and sets current application status messages
 type AppContext struct {
 	AudioStream        io.ReadCloser
-	Player             *pulse.PlaybackStream
+	ChannelList        []components.ChannelItem
 	CurrentChannel     *components.ChannelItem
 	DifmToken          string
+	FavoriteList       []components.FavoriteItem
+	Network            *components.Network
+	HighlightedChannel *components.ChannelItem
 	IsPlaying          bool
+	Player             *pulse.PlaybackStream
 	ShowStatus         bool // The status pane will be visible when true
 	StatusChannel      chan components.StatusMessage
 	View               *views.ViewContext
-	ChannelList        []components.ChannelItem
-	FavoriteList       []components.FavoriteItem
-	HighlightedChannel *components.ChannelItem
 }
 
 // SetStatusMessage sets the application's status message for five seconds.

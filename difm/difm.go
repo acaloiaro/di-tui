@@ -8,83 +8,78 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
-	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/acaloiaro/di-tui/context"
-	"github.com/acaloiaro/di-tui/player"
-
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/config"
+	"github.com/acaloiaro/di-tui/context"
+	"github.com/acaloiaro/di-tui/player"
 	"github.com/bradfitz/iter"
 	ini "gopkg.in/ini.v1"
 )
 
-type ApplicationMetadata struct {
-	User struct {
-		ID         int64  `json:"id"`
-		AudioToken string `json:"audio_token"`
-		SessionKey string `json:"session_key"`
-	} `json:"user"`
-	CsrfToken string
+var Networks = map[string]*components.Network{
+	"classicalradio": {
+		Name:      "Classical Radio",
+		ListenURL: "http://listen.classicalradio.com",
+		ShortName: "classicalradio",
+	},
+	"di": {
+		Name:      "DI.fm",
+		ListenURL: "http://listen.di.fm",
+		ShortName: "di",
+	},
+	"radiotunes": {
+		Name:      "RadioTunes",
+		ListenURL: "http://listen.radiotunes.com",
+		ShortName: "radiotunes",
+	},
+	"rockradio": {
+		Name:      "ROCKRADIO.COM",
+		ListenURL: "http://listen.rockradio.com",
+		ShortName: "rockradio",
+	},
+	"jazzradio": {
+		Name:      "JazzRadio",
+		ListenURL: "http://listen.jazzradio.com",
+		ShortName: "jazzradio",
+	},
+	"zenradio": {
+		Name:      "Zen Radio",
+		ListenURL: "http://listen.zenradio.com",
+		ShortName: "zenradio",
+	},
+}
+
+func GetNetwork(name string) (network *components.Network, err error) {
+	var ok bool
+	if network, ok = Networks[name]; !ok {
+		return nil, fmt.Errorf("network does not exist: %s", network)
+	}
+
+	return
 }
 
 type authResponse struct {
 	ListenKey string `json:"listen_key"`
+	APIKey    string `json:"api_key"`
 }
 
-// Authenticate authenticates to the di.fm API with a username and password
-//
-// Note: There is a more API-friendly way of authenticating to the audioaddict API. However, because only the "web
-// player" allows interactions such as adding/removing favorite channels, we're obligated to authenticate in the way
-// that the web player authenticates.
-
-// login workflow
-// 1. GET www.di.fm/login to get the CSRF token
-// 2. POST www.di.fm/login (with CSRF token and other appropriate headers)
-// 3. GET www.di.fm/ to retrieve two key pieces of information
-//   - an "audio_token"
-//   - a "session_key"
-//
-// Both of which are required to perform advanced player features such as adding/removing favorites.
-//
-// One added benefit of logging in this way is that di-tui may use the audio token to stream "on-demand" audio in the
-// future, which would allow the player to buffer content. Currently, no buffering is performed because di-tui uses the
-// streaming API.
-//
-// However, until a developer-friendly, go-native AAC decoder is available, this player will
-// continue using the MP3 "streaming" API.
-func Authenticate(ctx *context.AppContext, username, password string) (token string) {
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		log.Fatalf("Got error while creating cookie jar %s", err.Error())
-	}
-	client := &http.Client{Jar: jar}
-
-	// 1. GET www.di.fm/login to get the CSRF token
-	meta, _ := getApplicationMetadata(ctx, client)
-	authURL := "https://www.di.fm/login"
+// Authenticate authenticates to the audio addict API
+func Authenticate(ctx *context.AppContext, username, password string) (err error) {
+	authURL := fmt.Sprintf("https://api.audioaddict.com/v1/%s/members/authenticate", ctx.Network.ShortName)
+	log.Println(authURL)
+	client := &http.Client{}
 	data := url.Values{}
-	data.Set("member_session[username]", username)
-	data.Set("member_session[password]", password)
-
+	data.Set("username", username)
+	data.Set("password", password)
 	encodedData := data.Encode()
 
-	// 2. POST www.di.fm/login (with CSRF token and other appropriate headers)
 	req, _ := http.NewRequest("POST", authURL, strings.NewReader(encodedData))
 	req.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
-	req.Header.Add("Origin", "https://www.di.fm")
-	req.Header.Add("Referrer", "https://www.di.fm")
-	req.Header.Add("Sec-Fetch-Mode", "cors")
-	req.Header.Add("Sec-Fetch-Dest", "empty")
-	req.Header.Add("Sec-Fetch-Site", "same-origin")
-	req.Header.Add("X-Requested-With", "XMLHttpRequest")
-	req.Header.Add("X-CSRF-Token", meta.CsrfToken)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -94,69 +89,19 @@ func Authenticate(ctx *context.AppContext, username, password string) (token str
 
 	var res authResponse
 	body, err := io.ReadAll(resp.Body)
-	if err != nil || resp.StatusCode != 200 {
-		fmt.Println("Unable to authenticate to di.fm. Status code:", resp.StatusCode)
-		os.Exit(1)
+	if err != nil {
+		log.Fatal("unable to authenticate", err.Error())
 	}
 
 	json.Unmarshal(body, &res)
+	err = json.Unmarshal([]byte(body), &res)
+	if err != nil {
+		log.Fatalf("unable to reason API response: %v", err)
+	}
+
 	config.SaveListenToken(res.ListenKey)
-
-	// 3. GET www.di.fm/ to retrieve two key pieces of information
-	meta, err = getApplicationMetadata(ctx, client)
-	if err != nil {
-		fmt.Println("Unable to fetch audio token and session key")
-		os.Exit(1)
-	}
-
-	config.SaveAudioToken(meta.User.AudioToken)
-	config.SaveSessionKey(meta.User.SessionKey)
-	config.SaveUserID(meta.User.ID)
-
-	return
-}
-
-// GetApplicationMetadata fetches the application's metadata (the di.fm player application) from www.di.fm
-func getApplicationMetadata(ctx *context.AppContext, client *http.Client) (appMeta ApplicationMetadata, err error) {
-	var req *http.Request
-	req, err = http.NewRequest("GET", "https://www.di.fm", nil)
-	if err != nil {
-		return
-	}
-
-	req.Header.Add("Sec-Fetch-Mode", "cors")
-	req.Header.Add("Sec-Fetch-Dest", "empty")
-	req.Header.Add("Sec-Fetch-Site", "same-origin")
-
-	var resp *http.Response
-	resp, err = client.Do(req)
-	if err != nil || resp.StatusCode != 200 {
-		return
-	}
-	defer resp.Body.Close()
-
-	var body []byte
-	body, err = io.ReadAll(resp.Body)
-	if err != nil || resp.StatusCode != 200 {
-		return
-	}
-
-	bodyStr := string(body)
-	re := regexp.MustCompile(`.*di\.app\.start\((.*)\);.*`)
-	matches := re.FindStringSubmatch(bodyStr)
-	if len(matches) > 0 {
-		appMeta = ApplicationMetadata{}
-		err = json.Unmarshal([]byte(matches[1]), &appMeta)
-		if err != nil {
-			return
-		}
-	}
-
-	re = regexp.MustCompile(`.*meta name="csrf-token" content="(.*?)"/>`)
-	matches = re.FindStringSubmatch(bodyStr)
-	if len(matches) > 0 {
-		appMeta.CsrfToken = matches[1]
-	}
+	config.SaveAPIKey(res.APIKey)
+	config.SaveNetwork(ctx.Network)
 
 	return
 }
@@ -179,14 +124,14 @@ func GetStreamURL(data []byte, ctx *context.AppContext) (streamURL string, ok bo
 // GetCurrentlyPlaying fetches the list of all currently playing tracks site-side
 func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.CurrentlyPlaying) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "https://api.audioaddict.com/v1/di/currently_playing", nil)
+	url := fmt.Sprintf("https://api.audioaddict.com/v1/%s/currently_playing", ctx.Network.ShortName)
+	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
 		ctx.SetStatusMessage("Unable to fetch currently playing track info")
 		return
 	}
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode != 200 {
 		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
@@ -209,7 +154,8 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 // ListChannels lists all premium MP3 channels
 func ListChannels(ctx *context.AppContext) (channels []components.ChannelItem) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "http://listen.di.fm/premium_high", nil)
+	url := fmt.Sprintf("%s/premium_high", ctx.Network.ListenURL)
+	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
 		ctx.SetStatusMessage("Unable to fetch the list of channels")
@@ -235,7 +181,7 @@ func ListChannels(ctx *context.AppContext) (channels []components.ChannelItem) {
 // ListFavorites lists a user's favorite channels
 func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem) {
 	client := &http.Client{}
-	url := fmt.Sprintf("%s?%s", "http://listen.di.fm/premium_high/favorites.pls", ctx.DifmToken)
+	url := fmt.Sprintf("%s%s?%s", ctx.Network.ListenURL, "/premium_high/favorites.pls", ctx.DifmToken)
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
@@ -263,41 +209,6 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	}
 
 	return
-}
-
-// ToggleFavorite adds/removes the currentlly selected channel to/from the user's favorites
-func ToggleFavorite(ctx *context.AppContext) {
-	if config.GetSessionKey() == "" {
-		ctx.SetStatusMessage("Unfortunately you must log in to di-tui with a username and password to change favorites.")
-		return
-	}
-
-	client := &http.Client{}
-	url := fmt.Sprintf("https://api.audioaddict.com/v1/di/members/%d/favorites/channel/%d", config.GetUserID(), ctx.HighlightedChannel.ID)
-
-	requestMethod := "POST"
-	focusedView := ctx.View.App.GetFocus()
-	// if the user is currently viewing favorites, then the request is to remove the channel from the favorite list
-	if focusedView == ctx.View.FavoriteList {
-		requestMethod = "DELETE"
-	}
-
-	url = fmt.Sprintf("%s?audio_token=%s", url, config.GetAudioToken())
-
-	var jsonStr = []byte(fmt.Sprintf(`{"id": %d}`, ctx.HighlightedChannel.ID))
-	req, _ := http.NewRequest(requestMethod, url, bytes.NewBuffer(jsonStr))
-
-	req.Header.Add("Sec-Fetch-Mode", "cors")
-	req.Header.Add("Sec-Fetch-Dest", "empty")
-	req.Header.Add("Sec-Fetch-Site", "same-origin")
-	req.Header.Add("X-Session-Key", config.GetSessionKey())
-
-	resp, err := client.Do(req)
-	if err != nil || (resp.StatusCode != 204 && resp.StatusCode != 200) {
-		ctx.SetStatusMessage("There was a problem updating channel favorites")
-		return
-	}
-	defer resp.Body.Close()
 }
 
 // Stream streams the provided URL using the given di.fm premium token
@@ -346,10 +257,11 @@ func Stream(url string, ctx *context.AppContext) {
 
 // FavoriteItemChannel identifies the ChannelItem that corresponds with a FavoriteItem
 func FavoriteItemChannel(ctx *context.AppContext, favorite components.FavoriteItem) (channel *components.ChannelItem) {
+	// favorites are prefixed with "<NETWORK-NAME> - <CHANNEL NAME>", e.g. "DI.fm - Liquid Trap"
+	// shave it off before comparing
+	prefix := fmt.Sprintf("%s - ", ctx.Network.Name)
 	for _, chn := range ctx.ChannelList {
-		// favorites are prefixed with "DI.fm - <CHANNEL NAME>", shave it off before comparing
-		// TODO: this feels a bit hacky -- consider doing something else.
-		if chn.Name == favorite.Name[8:len(favorite.Name)] {
+		if chn.Name == favorite.Name[len(prefix):len(favorite.Name)] {
 			channel = &chn
 			return
 		}

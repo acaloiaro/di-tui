@@ -242,7 +242,6 @@ func GetKeybindings() (bindings []UIKeybinding) {
 	bindings = []UIKeybinding{
 		{Shortcut: "c", Description: "Channels", Func: func() {}},
 		{Shortcut: "f", Description: "Favorites", Func: func() {}},
-		{Shortcut: "F", Description: "Toggle Favorite", Func: func() {}},
 		{Shortcut: "j", Description: "Scroll Down", Func: func() {}},
 		{Shortcut: "k", Description: "Scroll Up", Func: func() {}},
 		{Shortcut: "q", Description: "Quit", Func: func() {}},

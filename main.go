@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/acaloiaro/di-tui/app"
@@ -20,28 +21,35 @@ import (
 var ctx *context.AppContext
 
 func main() {
-	pflag.String("username", "", "your di.fm username")
-	pflag.String("password", "", "your di.fm password")
-
+	ctx = context.CreateAppContext(views.CreateViewContext())
+	var err error
+	username := pflag.String("username", "", "your di.fm username")
+	password := pflag.String("password", "", "your di.fm password")
+	network := pflag.String("network", viper.GetString("network.shortname"), "the audioaddict network to connect to")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
-	username := viper.GetString("username")
-	password := viper.GetString("password")
-
-	var token string
-	if len(username) > 0 && len(password) > 0 {
-		difm.Authenticate(ctx, username, password)
+	ctx.Network, err = difm.GetNetwork(*network)
+	if err != nil {
+		var networks []string
+		for network := range difm.Networks {
+			networks = append(networks, network)
+		}
+		fmt.Printf("Invalid network: %s \nPlease choose from the following: %s\n", *network, strings.Join(networks, ", "))
+		return
 	}
 
-	token = config.GetToken()
+	if *username != "" && *password != "" {
+		difm.Authenticate(ctx, *username, *password)
+	}
+
+	token := config.GetToken()
 	if token == "" {
 		fmt.Println("Authenticate by running: di-tui --username USER --password PASSWORD\n\n" +
 			"Or, visit https://github.com/acaloiaro/di-tui#authenticate for other options.")
 		os.Exit(1)
 	}
 
-	ctx = context.CreateAppContext(views.CreateViewContext())
 	ctx.DifmToken = token
 
 	run()
@@ -96,8 +104,12 @@ func updateScreenLayout() {
 // configureEventHandling handles key press events, and regular UI updates such as the currently playing track
 func configureEventHandling() {
 	ctx.View.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		focus := ctx.View.App.GetFocus().(*tview.List)
+		favoritesEmpty := len(ctx.FavoriteList) == 0
+		if favoritesEmpty {
+			ctx.View.App.SetFocus(ctx.View.ChannelList)
+		}
 
+		focus := ctx.View.App.GetFocus().(*tview.List)
 		switch event.Key() {
 		case tcell.KeyEnter:
 			current := focus.GetCurrentItem()
@@ -118,16 +130,6 @@ func configureEventHandling() {
 				if focus != ctx.View.FavoriteList {
 					ctx.View.App.SetFocus(ctx.View.FavoriteList)
 				}
-			case 'F':
-				current := focus.GetCurrentItem()
-				if focus == ctx.View.ChannelList {
-					ctx.HighlightedChannel = &ctx.ChannelList[current]
-				} else {
-					highlightedFavorite := ctx.FavoriteList[current]
-					ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
-				}
-				difm.ToggleFavorite(ctx)
-				FetchFavoritesAndChannels()
 			case 'q':
 				ctx.View.App.Stop()
 			case 'j': // scroll down
@@ -199,6 +201,11 @@ func FetchFavoritesAndChannels() {
 	}
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites
+
+	if len(favorites) == 0 {
+		ctx.HighlightedChannel = &ctx.ChannelList[0]
+		return
+	}
 
 	// default the highlighted channel to the first favorite; even before users select a channel manually. This way,
 	// when di-tui starts and the user presses the "Play" media key, di-tui will start playing the first favorite

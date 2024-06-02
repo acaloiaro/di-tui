@@ -190,6 +190,11 @@ func FetchFavoritesAndChannels() {
 	ctx.View.FavoriteList.Clear()
 
 	channels := difm.ListChannels(ctx)
+	if len(channels) == 0 {
+		ctx.SetStatusMessage("Unable to get the channel list.")
+		return
+	}
+
 	for _, chn := range channels {
 		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
 		})

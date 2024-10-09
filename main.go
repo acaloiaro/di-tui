@@ -207,8 +207,12 @@ func FetchFavoritesAndChannels() {
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites
 
+	if len(channels) == 0 && len(favorites) == 0 {
+		return
+	}
+
 	if len(favorites) == 0 {
-		ctx.HighlightedChannel = &ctx.ChannelList[0]
+		ctx.HighlightedChannel = &channels[0]
 		return
 	}
 

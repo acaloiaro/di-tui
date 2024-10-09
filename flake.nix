@@ -8,11 +8,6 @@
       url = "github:nix-community/gomod2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    semver-bumper = {
-      url = "sourcehut:~jcmuller/semver-bumper";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -21,7 +16,6 @@
     devenv,
     systems,
     gomod2nix,
-    semver-bumper,
     ...
   } @ inputs: let
     forEachSystem = nixpkgs.lib.genAttrs (import systems);
@@ -50,7 +44,7 @@
               gomod2nix.legacyPackages.${system}.gomod2nix
               golangci-lint
               pre-commit
-              semver-bumper.packages.${system}.default
+              svu
             ];
 
             pre-commit.hooks.gomod2nix = {

@@ -20,27 +20,38 @@ import (
 
 var ctx *context.AppContext
 
+const VERSION = "1.10.1"
+
 func main() {
 	ctx = context.CreateAppContext(views.CreateViewContext())
 	var err error
-	username := pflag.String("username", "", "your di.fm username")
-	password := pflag.String("password", "", "your di.fm password")
-	network := pflag.String("network", viper.GetString("network.shortname"), "the audioaddict network to connect to")
+	usernameFlag := pflag.String("username", "", "your di.fm username")
+	passwordFlag := pflag.String("password", "", "your di.fm password")
+	versionFlag := pflag.Bool("version", false, "print the current di-tui version")
+	networkFlag := pflag.String("network", viper.GetString("network.shortname"), "the audioaddict network to connect to")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
-	ctx.Network, err = difm.GetNetwork(*network)
+	if *versionFlag {
+		fmt.Printf("di-tui %s\n", VERSION)
+		return
+	}
+	ctx.Network, err = difm.GetNetwork(*networkFlag)
 	if err != nil {
 		var networks []string
 		for network := range difm.Networks {
 			networks = append(networks, network)
 		}
-		fmt.Printf("Invalid network: %s \nPlease choose from the following: %s\n", *network, strings.Join(networks, ", "))
+		fmt.Printf("Invalid network: %s \nPlease choose from the following: %s\n", *networkFlag, strings.Join(networks, ", "))
 		return
 	}
 
-	if *username != "" && *password != "" {
-		difm.Authenticate(ctx, *username, *password)
+	if *usernameFlag != "" && *passwordFlag != "" {
+		err = difm.Authenticate(ctx, *usernameFlag, *passwordFlag)
+		if err != nil {
+			fmt.Printf("unable to authenticate %s", err)
+			return
+		}
 	}
 
 	token := config.GetToken()

@@ -17,7 +17,6 @@ import (
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/player"
-	"github.com/bradfitz/iter"
 	ini "gopkg.in/ini.v1"
 )
 
@@ -199,7 +198,7 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 
 	sec := "playlist"
 	numEntries := cfg.Section(sec).Key("NumberOfEntries").MustInt(0)
-	for i := range iter.N(numEntries) {
+	for i := range numEntries {
 		// di.fm's PLS keys begin at 1
 		k := i + 1
 		favorites = append(favorites, components.FavoriteItem{

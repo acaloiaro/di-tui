@@ -1,9 +1,6 @@
 schema = 3
 
 [mod]
-  [mod."github.com/bradfitz/iter"]
-    version = "v0.0.0-20191230175014-e8f45d346db8"
-    hash = "sha256-CZQf2C0EmqsokHGoIEECGgzp7qxdZxWo+U5nWqELHuM="
   [mod."github.com/fsnotify/fsnotify"]
     version = "v1.4.7"
     hash = "sha256-j/Ts92oXa3k1MFU7Yd8/AqafRTsFn7V2pDKCyDJLah8="

@@ -1,9 +1,8 @@
 module github.com/acaloiaro/di-tui
 
-go 1.21
+go 1.22
 
 require (
-	github.com/bradfitz/iter v0.0.0-20191230175014-e8f45d346db8
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/hajimehoshi/go-mp3 v0.2.1

@@ -1,6 +1,6 @@
 module github.com/acaloiaro/di-tui
 
-go 1.22
+go 1.21
 
 require (
 	github.com/gdamore/tcell/v2 v2.6.0

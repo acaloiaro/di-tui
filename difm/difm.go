@@ -198,7 +198,7 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 
 	sec := "playlist"
 	numEntries := cfg.Section(sec).Key("NumberOfEntries").MustInt(0)
-	for i := range numEntries {
+	for i := 0; i < numEntries; i++ {
 		// di.fm's PLS keys begin at 1
 		k := i + 1
 		favorites = append(favorites, components.FavoriteItem{

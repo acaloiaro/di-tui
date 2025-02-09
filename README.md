@@ -2,7 +2,11 @@
 
 A simple terminal UI player for [di.fm Premium](http://di.fm)
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/di-tui.svg)](https://repology.org/project/di-tui/versions)
+
 ![App Screenshot](https://github.com/acaloiaro/di-tui/assets/3331648/5b85343f-d098-48d8-ae98-4bd1e99e0a8b)
+
+---
 
 This app began as di.fm player, but now supports the whole Audio Addict network
 
@@ -14,21 +18,21 @@ This app began as di.fm player, but now supports the whole Audio Addict network
 - Zen Radio
 
 
-## Install
+## Run / Install
 
 ### Binary Releases
 
-There are binary builds available in [releases](https://github.com/acaloiaro/di-tui/releases).
+Binary releases are available in [releases](https://github.com/acaloiaro/di-tui/releases).
 
-### With `go install`
+### `go install`
+
 `go install github.com/acaloiaro/di-tui@latest`
 
-If `$GOPATH/bin` is not on your `$PATH` (modify accordingly for ZSH users `~/.zshrc`)
-```
-echo "export PATH=$PATH:$GOPATH/bin" >> ~/.bashrc
-source ~/.bashrc
-```
-### Run with `nix run`
+### Nixpkgs (currently unstable channel only)
+
+`di-tui` is currently in nixpkgs/nixos-unstable.
+
+### Run the flake
 
 ```
 nix run github:acaloiaro/di-tui
@@ -52,7 +56,7 @@ album_art: <BOOLEAN>
 | key | description |
 | --- | ----------- |
 | token | **string** Your di.fm authentication "Listen Key" found at https://www.di.fm/settings |
-| album_art |  **boolean** Enable/disable audio art |
+| album_art |  **boolean** Enable/disable album ASCII art |
 
 ### Choose a network 
 
@@ -123,7 +127,4 @@ theme:
   secondary_text_color: "#81a2be"
 ```
 
-## Run
-
-`di-tui`
 

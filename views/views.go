@@ -234,6 +234,7 @@ func createStatusView() *StatusView {
 	sv.SetTitleColor(primaryTextColor)
 	sv.SetBorder(true)
 	sv.SetBorderColor(primaryColor)
+	sv.SetBackgroundColor(backgroundColor)
 
 	return sv
 }

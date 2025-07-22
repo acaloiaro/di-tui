@@ -20,7 +20,7 @@ import (
 
 var ctx *context.AppContext
 
-const VERSION = "1.11.1"
+const VERSION = "1.11.2"
 
 func main() {
 	ctx = context.CreateAppContext(views.CreateViewContext())

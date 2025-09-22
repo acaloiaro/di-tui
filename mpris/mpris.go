@@ -201,6 +201,9 @@ func Start(ctx *context.AppContext) {
 				continue
 			}
 
+			if s.Conn == nil {
+				return
+			}
 			p.metaData.Artist = []string{p.ctx.View.NowPlaying.Track.Artist}
 			p.metaData.Title = p.ctx.View.NowPlaying.Track.Title
 			props := map[string]any{

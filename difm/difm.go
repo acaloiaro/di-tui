@@ -3,6 +3,7 @@ package difm
 import (
 	"bufio"
 	"bytes"
+	c "context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,6 +54,9 @@ var Networks = map[string]*components.Network{
 	},
 }
 
+// streamRequestTimeout is the timeout for requests to stream playlists (channels)
+var streamRequestTimeout = 60 * time.Second
+
 func GetNetwork(name string) (network *components.Network, err error) {
 	var ok bool
 	if network, ok = Networks[name]; !ok {
@@ -70,7 +74,6 @@ type authResponse struct {
 // Authenticate authenticates to the audio addict API
 func Authenticate(ctx *context.AppContext, username, password string) (err error) {
 	authURL := fmt.Sprintf("https://api.audioaddict.com/v1/%s/members/authenticate", ctx.Network.ShortName)
-	log.Println(authURL)
 	client := &http.Client{}
 	data := url.Values{}
 	data.Set("username", username)
@@ -134,7 +137,6 @@ func GetCurrentlyPlaying(ctx *context.AppContext) (currentlyPlaying components.C
 	body, err := io.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode != 200 {
 		ctx.SetStatusMessage("Unable to fetch currently playing track info.")
-
 		return
 	}
 
@@ -223,10 +225,21 @@ func Stream(url string, ctx *context.AppContext) {
 			ctx.Player.Close()
 		}
 
-		req, _ := http.NewRequest("GET", u, nil)
+		rctx, cancel := c.WithTimeout(c.Background(), streamRequestTimeout)
+		defer cancel()
+		req, err := http.NewRequestWithContext(rctx, "GET", u, nil)
+		if err != nil {
+			ctx.SetStatusMessage("There was a problem streaming audio!")
+			return
+		}
+
 		resp, err := client.Do(req)
-		if err != nil || resp.StatusCode != 200 {
-			ctx.SetStatusMessage("There was a problem streaming audio.")
+		switch {
+		case err != nil:
+			ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
+			return
+		case resp.StatusCode != 200:
+			ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: HTTP Status: %s", u))
 			return
 		}
 

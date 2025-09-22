@@ -13,7 +13,7 @@ import (
 func CreateAppContext(view *views.ViewContext) *AppContext {
 	ctx := &AppContext{
 		View:          view,
-		StatusChannel: make(chan components.StatusMessage, 1),
+		StatusChannel: make(chan components.StatusMessage, 10),
 	}
 
 	return ctx
@@ -49,6 +49,5 @@ func (c *AppContext) SetStatusMessage(msg string) {
 
 // SetStatusMessageTimed sets the application's status message for a fixed period of time.
 func (c *AppContext) SetStatusMessageTimed(msg string, d time.Duration) {
-	c.ShowStatus = true
 	c.StatusChannel <- components.StatusMessage{Message: msg, Duration: d}
 }

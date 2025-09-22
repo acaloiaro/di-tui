@@ -183,6 +183,7 @@ func configureEventHandling() {
 	go func() {
 		for {
 			status := <-ctx.StatusChannel
+			ctx.ShowStatus = true
 			ctx.View.Status.Message = status.Message
 			updateScreenLayout() // add the status pane to the screen
 

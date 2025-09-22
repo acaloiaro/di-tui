@@ -124,10 +124,10 @@ func configureEventHandling() {
 		switch event.Key() {
 		case tcell.KeyEnter:
 			current := focus.GetCurrentItem()
-			if focus != ctx.View.ChannelList {
+			if focus != ctx.View.ChannelList && current < len(ctx.FavoriteList) {
 				highlightedFavorite := ctx.FavoriteList[current]
 				ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
-			} else {
+			} else if current < len(ctx.ChannelList) {
 				ctx.HighlightedChannel = &ctx.ChannelList[current]
 			}
 			app.Play(ctx)

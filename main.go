@@ -124,10 +124,10 @@ func configureEventHandling() {
 		switch event.Key() {
 		case tcell.KeyEnter:
 			current := focus.GetCurrentItem()
-			if focus != ctx.View.ChannelList {
+			if focus != ctx.View.ChannelList && current < len(ctx.FavoriteList) {
 				highlightedFavorite := ctx.FavoriteList[current]
 				ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
-			} else {
+			} else if current < len(ctx.ChannelList) {
 				ctx.HighlightedChannel = &ctx.ChannelList[current]
 			}
 			app.Play(ctx)
@@ -183,6 +183,7 @@ func configureEventHandling() {
 	go func() {
 		for {
 			status := <-ctx.StatusChannel
+			ctx.ShowStatus = true
 			ctx.View.Status.Message = status.Message
 			updateScreenLayout() // add the status pane to the screen
 

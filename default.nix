@@ -14,7 +14,7 @@
 }:
 buildGoApplication {
   pname = "di-tui";
-  version = "1.11.2";
+  version = "1.11.3";
   pwd = ./.;
   src = ./.;
   modules = ./gomod2nix.toml;

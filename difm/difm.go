@@ -54,9 +54,6 @@ var Networks = map[string]*components.Network{
 	},
 }
 
-// streamRequestTimeout is the timeout for requests to stream playlists (channels)
-var streamRequestTimeout = 60 * time.Second
-
 func GetNetwork(name string) (network *components.Network, err error) {
 	var ok bool
 	if network, ok = Networks[name]; !ok {
@@ -225,8 +222,7 @@ func Stream(url string, ctx *context.AppContext) {
 			ctx.Player.Close()
 		}
 
-		rctx, cancel := c.WithTimeout(c.Background(), streamRequestTimeout)
-		defer cancel()
+		rctx := c.Background()
 		req, err := http.NewRequestWithContext(rctx, "GET", u, nil)
 		if err != nil {
 			ctx.SetStatusMessage("There was a problem streaming audio!")

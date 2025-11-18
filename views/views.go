@@ -20,6 +20,14 @@ var (
 	secondaryTextColor       tcell.Color
 )
 
+const (
+	channelListTitle      = " Channels "
+	favoritesTitle        = " Favorites "
+	keyboardControlsTitle = " Keyboard Controls "
+	nowPlayingTitle       = " Now Playing"
+	statusTitle           = " Status "
+)
+
 func init() {
 	if config.HasTheme() {
 		os.Setenv("COLORTERM", "24bit")
@@ -70,6 +78,7 @@ type NowPlayingView struct {
 	Art     string
 	Channel *components.ChannelItem
 	Elapsed float64
+	Network *components.Network
 	Track   components.Track
 }
 
@@ -80,13 +89,13 @@ type StatusView struct {
 }
 
 // CreateViewContext creates the primary application view of di-tui
-func CreateViewContext() *ViewContext {
+func CreateViewContext(network *components.Network) *ViewContext {
 	return &ViewContext{
 		App:          tview.NewApplication(),
 		ChannelList:  createChannelList(),
 		FavoriteList: createFavoriteList(),
 		Keybindings:  createKeybindings(),
-		NowPlaying:   createNowPlaying(),
+		NowPlaying:   createNowPlaying(network),
 		Status:       createStatusView(),
 	}
 }
@@ -172,7 +181,7 @@ func createChannelList() *tview.List {
 	list.
 		ShowSecondaryText(false).
 		SetBorder(true).
-		SetTitle(" Channels ").
+		SetTitle(channelListTitle).
 		SetTitleColor(primaryTextColor).
 		SetBorderColor(primaryColor)
 
@@ -188,7 +197,7 @@ func createFavoriteList() *tview.List {
 		ShowSecondaryText(false).
 		SetBorder(true).
 		SetBorderColor(primaryColor).
-		SetTitle(" Favorites ").
+		SetTitle(favoritesTitle).
 		SetTitleColor(primaryTextColor)
 
 	list.Box.SetBackgroundColor(backgroundColor)
@@ -203,21 +212,21 @@ func createKeybindings() *KeybindingView {
 		SetBorder(true).
 		SetBorderColor(primaryColor).
 		SetTitleColor(primaryTextColor).
-		SetTitle(" Keyboard Controls ")
+		SetTitle(keyboardControlsTitle)
 
 	kbv.SetBorderColor(primaryColor)
 
 	return kbv
 }
 
-func createNowPlaying() *NowPlayingView {
+func createNowPlaying(network *components.Network) *NowPlayingView {
 	np := &NowPlayingView{
 		Box:     tview.NewBox(),
 		Channel: &components.ChannelItem{},
 		Elapsed: 0.0,
 	}
 
-	np.SetTitle(" Now Playing ").
+	np.SetTitle(fmt.Sprintf("%s | %s ", nowPlayingTitle, network.Name)).
 		SetBorder(true).
 		SetBorderColor(primaryColor).
 		SetTitleColor(primaryTextColor)
@@ -230,7 +239,7 @@ func createStatusView() *StatusView {
 		Box:     tview.NewBox(),
 		Message: "Ready to Play",
 	}
-	sv.SetTitle(" Status ")
+	sv.SetTitle(statusTitle)
 	sv.SetTitleColor(primaryTextColor)
 	sv.SetBorder(true)
 	sv.SetBorderColor(primaryColor)

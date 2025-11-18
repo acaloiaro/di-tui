@@ -23,7 +23,6 @@ var ctx *context.AppContext
 const VERSION = "1.11.4"
 
 func main() {
-	ctx = context.CreateAppContext(views.CreateViewContext())
 	var err error
 	usernameFlag := pflag.String("username", "", "your di.fm username")
 	passwordFlag := pflag.String("password", "", "your di.fm password")
@@ -36,7 +35,7 @@ func main() {
 		fmt.Printf("di-tui %s\n", VERSION)
 		return
 	}
-	ctx.Network, err = difm.GetNetwork(*networkFlag)
+	network, err := difm.GetNetwork(*networkFlag)
 	if err != nil {
 		var networks []string
 		for network := range difm.Networks {
@@ -61,7 +60,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx = context.CreateAppContext(views.CreateViewContext(network))
 	ctx.DifmToken = token
+	ctx.Network = network
 
 	run()
 }

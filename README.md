@@ -71,6 +71,12 @@ DI.fm is the default network, but other audio addict networks can be chosen with
 | jazzradio | Jazz Radio [https://jazzradio.com](https://jazzradio.com)|
 | zenradio |  Zen Radio [https://zenradio.com](https://zenradio.com)|
 
+### Favorites
+
+Favorites must be edited on the web player (e.g. at [DI.fm](https://di.fm)) and cannot be
+edited via this app. It used to be possible to edit favorites from this app, but DI.fm
+introduced limitations on their API.
+
 ## Dependencies
 
 ### PulseAudio

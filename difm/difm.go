@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -210,6 +211,9 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 			PlaylistURL: cfg.Section(sec).Key(fmt.Sprintf("File%d", k)).String(),
 		})
 	}
+	slices.SortFunc(favorites, func(a components.FavoriteItem, b components.FavoriteItem) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	return
 }

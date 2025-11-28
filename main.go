@@ -62,7 +62,6 @@ func main() {
 
 	ctx = context.CreateAppContext(views.CreateViewContext(network))
 	ctx.DifmToken = token
-	ctx.Network = network
 
 	run()
 }
@@ -214,8 +213,8 @@ func FetchFavoritesAndChannels() {
 	}
 
 	favorites := difm.ListFavorites(ctx)
-	for _, fav := range favorites {
-		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {})
+	for i, favorite := range favorites {
+		ctx.View.FavoriteList.InsertItem(i, favorite.Name, "", 0, func() {})
 	}
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites

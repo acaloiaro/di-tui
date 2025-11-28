@@ -55,6 +55,7 @@ type ViewContext struct {
 	ChannelList  *tview.List
 	FavoriteList *tview.List
 	Keybindings  *KeybindingView
+	Network      *components.Network
 	NowPlaying   *NowPlayingView
 	Status       *StatusView
 }
@@ -95,6 +96,7 @@ func CreateViewContext(network *components.Network) *ViewContext {
 		ChannelList:  createChannelList(),
 		FavoriteList: createFavoriteList(),
 		Keybindings:  createKeybindings(),
+		Network:      network,
 		NowPlaying:   createNowPlaying(network),
 		Status:       createStatusView(),
 	}

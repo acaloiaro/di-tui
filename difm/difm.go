@@ -196,12 +196,17 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 	}
 
 	sec := "playlist"
+
+	// Playlist files prefix favorites with: 'NETWORKNAME - ', which needs to be removed
+	networkNamePrefix := fmt.Sprintf("%s - ", strings.ToUpper(ctx.Network.Name))
 	numEntries := cfg.Section(sec).Key("NumberOfEntries").MustInt(0)
 	for i := 0; i < numEntries; i++ {
 		// di.fm's PLS keys begin at 1
 		k := i + 1
+		origFavoriteName := cfg.Section(sec).Key(fmt.Sprintf("Title%d", k)).String()
+		favoriteName := strings.Replace(origFavoriteName, networkNamePrefix, "", 1)
 		favorites = append(favorites, components.FavoriteItem{
-			Name:        cfg.Section(sec).Key(fmt.Sprintf("Title%d", k)).String(),
+			Name:        favoriteName,
 			PlaylistURL: cfg.Section(sec).Key(fmt.Sprintf("File%d", k)).String(),
 		})
 	}
@@ -265,11 +270,8 @@ func Stream(url string, ctx *context.AppContext) {
 
 // FavoriteItemChannel identifies the ChannelItem that corresponds with a FavoriteItem
 func FavoriteItemChannel(ctx *context.AppContext, favorite components.FavoriteItem) (channel *components.ChannelItem) {
-	// favorites are prefixed with "<NETWORK-NAME> - <CHANNEL NAME>", e.g. "DI.fm - Liquid Trap"
-	// shave it off before comparing
-	prefix := fmt.Sprintf("%s - ", ctx.Network.Name)
 	for _, chn := range ctx.ChannelList {
-		if chn.Name == favorite.Name[len(prefix):len(favorite.Name)] {
+		if chn.Name == favorite.Name {
 			channel = &chn
 			return
 		}

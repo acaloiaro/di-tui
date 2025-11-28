@@ -10,11 +10,10 @@ import (
 )
 
 // CreateAppContext creates the application context
-func CreateAppContext(vc *views.ViewContext) *AppContext {
+func CreateAppContext(view *views.ViewContext) *AppContext {
 	ctx := &AppContext{
-		View:          vc,
+		View:          view,
 		StatusChannel: make(chan components.StatusMessage, 10),
-		Network:       vc.Network,
 	}
 
 	return ctx

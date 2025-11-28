@@ -23,6 +23,7 @@ var ctx *context.AppContext
 const VERSION = "1.11.4"
 
 func main() {
+	ctx = context.CreateAppContext(views.CreateViewContext())
 	var err error
 	usernameFlag := pflag.String("username", "", "your di.fm username")
 	passwordFlag := pflag.String("password", "", "your di.fm password")
@@ -35,7 +36,7 @@ func main() {
 		fmt.Printf("di-tui %s\n", VERSION)
 		return
 	}
-	network, err := difm.GetNetwork(*networkFlag)
+	ctx.Network, err = difm.GetNetwork(*networkFlag)
 	if err != nil {
 		var networks []string
 		for network := range difm.Networks {
@@ -60,7 +61,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx = context.CreateAppContext(views.CreateViewContext(network))
 	ctx.DifmToken = token
 
 	run()
@@ -213,8 +213,8 @@ func FetchFavoritesAndChannels() {
 	}
 
 	favorites := difm.ListFavorites(ctx)
-	for i, favorite := range favorites {
-		ctx.View.FavoriteList.InsertItem(i, favorite.Name, "", 0, func() {})
+	for _, fav := range favorites {
+		ctx.View.FavoriteList.AddItem(fav.Name, "", 0, func() {})
 	}
 	ctx.ChannelList = channels
 	ctx.FavoriteList = favorites

@@ -2,7 +2,15 @@
 # Changelog
 
 
-## [v1.13.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.0) (2025-11-29 06:03:35 +0000 UTC)
+## [v1.13.1](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.1) (2025-11-29 06:09:06 +0000 UTC)
+
+### Bug Fixes
+
+- fix: push tags before cutting release
+
+
+
+## [v1.13.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.0) (2025-11-29 06:04:29 +0000 UTC)
 
 ### Bug Fixes
 
@@ -99,10 +107,10 @@
 ## [v1.10.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.10.0) (2024-10-09 14:09:20 -0700 -0700)
 
 
-## [1.10.0](https://github.com/acaloiaro/di-tui/releases/tag/1.10.0) (2024-06-02 17:56:50 +0000 UTC)
-
-
 ## [1.9.2](https://github.com/acaloiaro/di-tui/releases/tag/1.9.2) (2024-06-02 17:56:50 +0000 UTC)
+
+
+## [1.10.0](https://github.com/acaloiaro/di-tui/releases/tag/1.10.0) (2024-06-02 17:56:50 +0000 UTC)
 
 ### Bug Fixes
 
@@ -153,13 +161,13 @@
 ## [v1.3.36](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.36) (2024-01-16 01:26:26 +0000 UTC)
 
 
-## [v1.3.30](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.30) (2024-01-15 18:10:31 -0700 -0700)
-
-
 ## [v1.3.33](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.33) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
+
+
+## [v1.3.30](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.30) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.35](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.35) (2024-01-15 18:10:31 -0700 -0700)
@@ -203,10 +211,10 @@
 ## [v1.3.19](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.19) (2023-08-05 09:19:45 -0600 -0600)
 
 
-## [v1.3.17](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.17) (2023-07-17 08:21:22 -0600 -0600)
-
-
 ## [v1.3.18](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.18) (2023-07-17 08:21:22 -0600 -0600)
+
+
+## [v1.3.17](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.17) (2023-07-17 08:21:22 -0600 -0600)
 
 
 ## [v1.3.16](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.16) (2023-07-17 07:56:33 -0600 -0600)

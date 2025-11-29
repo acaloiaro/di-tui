@@ -32,7 +32,6 @@ jobs:
           git add main.go
           git add CHANGELOG.md
           git commit -m "bump di-tui version" --allow-empty
-          git tag v$NEW_TAG
       - name: Build binaries
         shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |

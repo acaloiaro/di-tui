@@ -26,17 +26,13 @@ jobs:
           [ "$OLD_TAG" == "$NEW_TAG" ] && echo "no version bump" && exit 0 
           sed -i "s/$OLD_TAG/$NEW_TAG/g" default.nix
           sed -i "s/$OLD_TAG/$NEW_TAG/g" main.go
-          changelog=$(git-chglog --next-tag=v$NEW_TAG)
-          echo "$changelog" > CHANGELOG.md
+          full_changelog=$(git-chglog --next-tag=v$NEW_TAG)
+          echo "$full_changelog" > CHANGELOG.md
           git add default.nix
           git add main.go
           git add CHANGELOG.md
           git commit -m "bump di-tui version" --allow-empty
           git tag v$NEW_TAG
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$changelog" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Build binaries
         shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
@@ -52,13 +48,17 @@ jobs:
       - name: Create Release
         shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
-          version=$(svu current)
+          version=$(svu next)
+          changelog=$(git-chglog --next-tag=$version $version)
           gh release create $version \
             --title "$version" \
-            --notes "${{ steps.changelog.outputs.changelog }}" \
+            --notes "$changelog" \
             di-tui-linux-amd64 \
             di-tui-linux-arm64 \
             di-tui-darwin-amd64 \
             di-tui-darwin-arm64
+
+          git push 
+          git push --tags        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -17,7 +17,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Generate changelog
         id: changelog
-        shell: nix develop --impure -c bash -- -e {0}
+        shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "Github Actions"
@@ -38,7 +38,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build binaries
-        shell: nix develop --impure -c bash -- -e {0}
+        shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
           export CGO_ENABLED=0
           targets="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64"
@@ -50,7 +50,7 @@ jobs:
             GOOS=$os GOARCH=$arch go build -o $output_name main.go
           done
       - name: Create Release
-        shell: nix develop --impure -c bash -- -e {0}
+        shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
           version=$(svu current)
           gh release create $version \

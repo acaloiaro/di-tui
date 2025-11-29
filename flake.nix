@@ -63,16 +63,30 @@
               pass_filenames = false;
               entry = "${gomod2nix.legacyPackages.${system}.gomod2nix}/bin/gomod2nix";
             };
+            pre-commit.hooks.changelog = {
+              enable = true;
+              always_run = true;
+              name = "change";
+              description = "Generate a changelog";
+              pass_filenames = false;
+              entry = "nix .#changelog";
+            };
           }
         ];
       };
     });
     apps = forEachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      changelog-script = pkgs.writeShellScriptBin "changelog" ''
+        set -euo pipefail
+        current_tag=$(${pkgs.svu}/bin/svu current)
+        ${pkgs.git-chglog}/bin/git-chglog "$current_tag"
+        echo "Generated CHANGELOG.md from $current_tag"
+      '';
     in {
       changelog = {
         type = "app";
-        program = "${pkgs.git-chglog}/bin/git-chglog";
+        program = "${changelog-script}/bin/changelog";
       };
     });
   };

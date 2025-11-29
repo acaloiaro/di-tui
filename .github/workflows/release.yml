@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # a full history is required for git-chglog
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "Github Actions"
+          OLD_TAG=$(nix develop --impure --command svu current --strip-prefix)
+          NEW_TAG=$(nix develop --impure --command svu next --strip-prefix)
+          [ "$OLD_TAG" == "$NEW_TAG" ] && echo "no version bump" && exit 0 
+          sed -i "s/$OLD_TAG/$NEW_TAG/g" default.nix
+          sed -i "s/$OLD_TAG/$NEW_TAG/g" main.go
+          changelog=$(nix develop --impure --command git-chglog --next-tag=v$NEW_TAG)
+          echo "$changelog" > CHANGELOG.md
+          git add default.nix
+          git add main.go
+          git add CHANGELOG.md
+          git commit -m "bump di-tui version" --allow-empty
+          git tag v$NEW_TAG
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        run: |
+          nix develop --impure --command bash -c '
+            export CGO_ENABLED=0
+            targets="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64"
+            for target in $targets; do
+              os=$(dirname $target)
+              arch=$(basename $target)
+              output_name="di-tui-${os}-${arch}"
+              echo "Building for $os/$arch..."
+              GOOS=$os GOARCH=$arch go build -o $output_name main.go
+            done
+          '
+
+      - name: Create Release
+        run: |
+          gh release create ${{ steps.version.outputs.version }} \
+            --title "${{ steps.version.outputs.version }}" \
+            --notes "${{ steps.changelog.outputs.changelog }}" \
+            di-tui-linux-amd64 \
+            di-tui-linux-arm64 \
+            di-tui-darwin-amd64 \
+            di-tui-darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

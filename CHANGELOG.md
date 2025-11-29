@@ -2,7 +2,15 @@
 # Changelog
 
 
-## [v1.13.1](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.1) (2025-11-29 06:09:06 +0000 UTC)
+## [v1.13.2](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.2) (2025-11-29 06:14:37 +0000 UTC)
+
+### Bug Fixes
+
+- fix: don't tag before creating a release
+
+
+
+## [v1.13.1](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.1) (2025-11-29 06:10:01 +0000 UTC)
 
 ### Bug Fixes
 
@@ -164,13 +172,13 @@
 ## [v1.3.33](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.33) (2024-01-15 18:10:31 -0700 -0700)
 
 
-## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
-
-
 ## [v1.3.30](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.30) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.35](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.35) (2024-01-15 18:10:31 -0700 -0700)
+
+
+## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.29](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.29) (2024-01-15 15:54:23 -0700 -0700)

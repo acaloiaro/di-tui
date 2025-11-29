@@ -50,6 +50,8 @@ jobs:
         run: |
           version=$(svu next)
           changelog=$(git-chglog --next-tag=$version $version)
+          git push 
+          git push --tags        
           gh release create $version \
             --title "$version" \
             --notes "$changelog" \
@@ -57,8 +59,5 @@ jobs:
             di-tui-linux-arm64 \
             di-tui-darwin-amd64 \
             di-tui-darwin-arm64
-
-          git push 
-          git push --tags        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

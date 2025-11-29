@@ -19,8 +19,15 @@
     ...
   } @ inputs: let
     forEachSystem = nixpkgs.lib.genAttrs (import systems);
+    supportedSystems = [
+      "x86_64-linux"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "aarch64-darwin"
+    ];
+    perSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
   in {
-    packages = forEachSystem (system: let
+    packages = perSystem (system: let
       callPackage = nixpkgs.darwin.apple_sdk_11_0.callPackage or nixpkgs.legacyPackages.${system}.callPackage;
     in {
       default = callPackage ./. {
@@ -44,6 +51,7 @@
               gomod2nix.legacyPackages.${system}.gomod2nix
               golangci-lint
               pre-commit
+              git-chglog
               svu
             ];
 
@@ -57,6 +65,14 @@
             };
           }
         ];
+      };
+    });
+    apps = forEachSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      changelog = {
+        type = "app";
+        program = "${pkgs.git-chglog}/bin/git-chglog";
       };
     });
   };

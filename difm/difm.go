@@ -219,20 +219,25 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 }
 
 // Stream streams the provided URL using the given di.fm premium token
-func Stream(url string, ctx *context.AppContext) {
+func Stream(url string, ctx *context.AppContext, streamCtx c.Context) {
 	client := http.DefaultClient
 	u := fmt.Sprintf("%s?%s", url, config.GetToken())
 
 	// Keep increasing playback latency by one second for every time that the player exits with EOF
 	// while ctx.IsPlaying
-	for playbackLatency := 1; ctx.IsPlaying; playbackLatency++ {
+	for playbackLatency := 1; ; playbackLatency++ {
+		select {
+		case <-streamCtx.Done():
+			return
+		default:
+		}
+
 		ctx.SetStatusMessage("Buffering stream...")
 		if ctx.Player != nil {
 			ctx.Player.Close()
 		}
 
-		rctx := c.Background()
-		req, err := http.NewRequestWithContext(rctx, "GET", u, nil)
+		req, err := http.NewRequestWithContext(streamCtx, "GET", u, nil)
 		if err != nil {
 			ctx.SetStatusMessage("There was a problem streaming audio!")
 			return
@@ -241,6 +246,9 @@ func Stream(url string, ctx *context.AppContext) {
 		resp, err := client.Do(req)
 		switch {
 		case err != nil:
+			if streamCtx.Err() != nil {
+				return
+			}
 			ctx.SetStatusMessage(fmt.Sprintf("There was a problem streaming audio: %s", err.Error()))
 			return
 		case resp.StatusCode != 200:
@@ -254,14 +262,20 @@ func Stream(url string, ctx *context.AppContext) {
 
 		go func() {
 			for {
-				_, err = io.CopyN(audioStream, resp.Body, 512)
-				if err != nil {
+				_, copyErr := io.CopyN(audioStream, resp.Body, 512)
+				if copyErr != nil {
 					return
 				}
 			}
 		}()
 
-		time.Sleep(time.Duration(playbackLatency) * time.Second)
+		select {
+		case <-streamCtx.Done():
+			resp.Body.Close()
+			return
+		case <-time.After(time.Duration(playbackLatency) * time.Second):
+		}
+
 		err = player.Play(ctx, audioStream, playbackLatency)
 		if err == nil {
 			return

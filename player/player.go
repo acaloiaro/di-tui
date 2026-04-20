@@ -44,6 +44,9 @@ func Play(ctx *context.AppContext, stream io.ReadWriter, playbackLatency int) (e
 
 func Stop(ctx *context.AppContext) {
 	ctx.IsPlaying = false
+	if ctx.StreamCancel != nil {
+		ctx.StreamCancel()
+	}
 	if ctx.Player != nil {
 		ctx.AudioStream.Close()
 		ctx.Player.Close()

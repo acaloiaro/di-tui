@@ -1,6 +1,7 @@
 package context
 
 import (
+	c "context"
 	"io"
 	"time"
 
@@ -40,6 +41,7 @@ type AppContext struct {
 	Player             *pulse.PlaybackStream
 	ShowStatus         bool // The status pane will be visible when true
 	StatusChannel      chan components.StatusMessage
+	StreamCancel       c.CancelFunc
 	View               *views.ViewContext
 }
 

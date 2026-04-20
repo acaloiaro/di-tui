@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	c "context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -103,25 +104,36 @@ func Play(ctx *context.AppContext) {
 	}
 
 	ctx.IsPlaying = true
+	streamCtx, cancel := c.WithCancel(c.Background())
+	ctx.StreamCancel = cancel
 
 	go func() {
 		client := &http.Client{}
-		req, _ := http.NewRequest("GET", chn.Playlist, nil)
+		req, _ := http.NewRequestWithContext(streamCtx, "GET", chn.Playlist, nil)
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != 200 {
-			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
+			if streamCtx.Err() == nil {
+				ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
+			}
 			return
 		}
 		defer resp.Body.Close()
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
+			if streamCtx.Err() == nil {
+				ctx.SetStatusMessage(fmt.Sprintf("Unable to stream channel: %s. Try again.", chn.Name))
+			}
 			return
 		}
 		if streamURL, ok := difm.GetStreamURL(body, ctx); ok {
+			select {
+			case <-streamCtx.Done():
+				return
+			default:
+			}
 			UpdateNowPlaying(ctx, chn)
-			difm.Stream(streamURL, ctx)
+			difm.Stream(streamURL, ctx, streamCtx)
 		}
 	}()
 }

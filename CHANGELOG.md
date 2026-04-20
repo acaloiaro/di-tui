@@ -2,7 +2,15 @@
 # Changelog
 
 
-## [v1.13.2](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.2) (2025-11-29 06:14:37 +0000 UTC)
+## [v1.13.3](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.3) (2026-04-20 03:04:37 +0000 UTC)
+
+### Bug Fixes
+
+- fix: changing channels quickly causes two to play
+
+
+
+## [v1.13.2](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.2) (2025-11-29 06:15:32 +0000 UTC)
 
 ### Bug Fixes
 
@@ -169,16 +177,16 @@
 ## [v1.3.36](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.36) (2024-01-16 01:26:26 +0000 UTC)
 
 
-## [v1.3.33](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.33) (2024-01-15 18:10:31 -0700 -0700)
-
-
 ## [v1.3.30](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.30) (2024-01-15 18:10:31 -0700 -0700)
+
+
+## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.35](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.35) (2024-01-15 18:10:31 -0700 -0700)
 
 
-## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
+## [v1.3.33](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.33) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.29](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.29) (2024-01-15 15:54:23 -0700 -0700)

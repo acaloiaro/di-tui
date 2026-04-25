@@ -20,7 +20,7 @@ import (
 
 var ctx *context.AppContext
 
-const VERSION = "1.13.3"
+const VERSION = "1.13.4"
 
 func main() {
 	var err error

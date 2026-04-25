@@ -163,6 +163,10 @@ func configureEventHandling() {
 	go func() {
 		c := time.Tick(1 * time.Second)
 		for range c {
+			// don't show elapsed time updates when playback is paused/not playing
+			if !ctx.IsPlaying {
+				continue
+			}
 			elapsed := time.Since(ctx.View.NowPlaying.Track.StartTime)
 
 			// If the current time is past the end of the track, then a new track is playing and the now playing track needs

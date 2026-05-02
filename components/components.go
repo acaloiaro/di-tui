@@ -19,10 +19,12 @@ type ChannelItem struct {
 	Playlist string `json:"playlist"`
 }
 
-// FavoriteItem contains a di.fm favorite channel
+// FavoriteItem contains a favorite channel. It is used both as a UI component and as the
+// serialized representation in the di-tui config file.
 type FavoriteItem struct {
-	Name        string
-	PlaylistURL string
+	ChannelID int64  `yaml:"channel_id" mapstructure:"channel_id"`
+	Hidden    bool   `yaml:"hidden"     mapstructure:"hidden"`
+	Name      string `yaml:"name"       mapstructure:"name"`
 }
 
 // CurrentlyPlaying contains the currently playing metadata for a di.fm channel

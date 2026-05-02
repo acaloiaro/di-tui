@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/acaloiaro/di-tui/app"
+	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/config"
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
@@ -19,6 +20,7 @@ import (
 )
 
 var ctx *context.AppContext
+var favoritesDebouncer *time.Timer
 
 const VERSION = "1.13.4"
 
@@ -151,6 +153,25 @@ func configureEventHandling() {
 				if current > 0 {
 					focus.SetCurrentItem(current - 1)
 				}
+			case 'J': // Shift+J: move favorite down
+				if focus == ctx.View.FavoriteList {
+					moveFavoriteDown(ctx, focus.GetCurrentItem())
+				}
+			case 'K': // Shift+K: move favorite up
+				if focus == ctx.View.FavoriteList {
+					moveFavoriteUp(ctx, focus.GetCurrentItem())
+				}
+			case 'F': // Shift+F: toggle favorite
+				current := focus.GetCurrentItem()
+				var channel *components.ChannelItem
+				if focus == ctx.View.FavoriteList && current < len(ctx.FavoriteList) {
+					channel = difm.FavoriteItemChannel(ctx, ctx.FavoriteList[current])
+				} else if focus == ctx.View.ChannelList && current < len(ctx.ChannelList) {
+					channel = &ctx.ChannelList[current]
+				}
+				if channel != nil {
+					toggleFavorite(ctx, channel)
+				}
 			case 'p', 32: // tcell has no constant for the space bar rune (32)
 				app.TogglePause(ctx)
 			}
@@ -210,31 +231,148 @@ func FetchFavoritesAndChannels() {
 		ctx.SetStatusMessage("Unable to get the channel list.")
 		return
 	}
+	ctx.ChannelList = channels
 
 	for _, chn := range channels {
-		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {
-		})
+		ctx.View.ChannelList.AddItem(chn.Name, "", 0, func() {})
 	}
 
-	favorites := difm.ListFavorites(ctx)
-	for i, favorite := range favorites {
-		ctx.View.FavoriteList.InsertItem(i, favorite.Name, "", 0, func() {})
+	remoteFavs := difm.ListFavorites(ctx)
+	// Populate ChannelID on remote favorites by matching channel names
+	channelByName := make(map[string]*components.ChannelItem, len(channels))
+	for i := range channels {
+		channelByName[channels[i].Name] = &channels[i]
 	}
-	ctx.ChannelList = channels
+	for i, rf := range remoteFavs {
+		if ch, ok := channelByName[rf.Name]; ok {
+			remoteFavs[i].ChannelID = ch.ID
+		}
+	}
+
+	favorites := mergeFavorites(remoteFavs, config.GetLocalFavorites())
+	for i, fav := range favorites {
+		ctx.View.FavoriteList.InsertItem(i, fav.Name, "", 0, func() {})
+	}
 	ctx.FavoriteList = favorites
 
-	if len(channels) == 0 && len(favorites) == 0 {
-		return
-	}
-
 	if len(favorites) == 0 {
-		ctx.HighlightedChannel = &channels[0]
+		if len(channels) > 0 {
+			ctx.HighlightedChannel = &channels[0]
+		}
 		return
 	}
 
 	// default the highlighted channel to the first favorite; even before users select a channel manually. This way,
 	// when di-tui starts and the user presses the "Play" media key, di-tui will start playing the first favorite
 	// instead of requiring them to choose the channel to be played
-	highlightedFavorite := ctx.FavoriteList[0]
-	ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, highlightedFavorite)
+	ctx.HighlightedChannel = difm.FavoriteItemChannel(ctx, ctx.FavoriteList[0])
+}
+
+// mergeFavorites combines local config favorites with remote favorites.
+// Local favorites define ordering; remote favorites not present locally are appended.
+// Local entries with hidden=true suppress both themselves and their remote counterpart.
+// If there are no local favorites, remote favorites are returned as-is.
+func mergeFavorites(remoteFavs, localFavs []components.FavoriteItem) []components.FavoriteItem {
+	if len(localFavs) == 0 {
+		return remoteFavs
+	}
+
+	localIDs := make(map[int64]bool, len(localFavs))
+	result := make([]components.FavoriteItem, 0, len(localFavs)+len(remoteFavs))
+	for _, lf := range localFavs {
+		localIDs[lf.ChannelID] = true
+		if !lf.Hidden {
+			result = append(result, lf)
+		}
+	}
+	for _, rf := range remoteFavs {
+		if !localIDs[rf.ChannelID] {
+			result = append(result, rf)
+		}
+	}
+	return result
+}
+
+func moveFavoriteUp(ctx *context.AppContext, current int) {
+	if current <= 0 || current >= len(ctx.FavoriteList) {
+		return
+	}
+	newCurrentIDx := current - 1
+	ctx.FavoriteList[current], ctx.FavoriteList[newCurrentIDx] = ctx.FavoriteList[newCurrentIDx], ctx.FavoriteList[current]
+	buildFavoriteList(ctx)
+	ctx.View.FavoriteList.SetCurrentItem(newCurrentIDx)
+	saveFavoritesDebounced(ctx)
+}
+
+func moveFavoriteDown(ctx *context.AppContext, current int) {
+	if current < 0 || current >= len(ctx.FavoriteList)-1 {
+		return
+	}
+	newCurrentIDx := current + 1
+	ctx.FavoriteList[current], ctx.FavoriteList[newCurrentIDx] = ctx.FavoriteList[newCurrentIDx], ctx.FavoriteList[current]
+	buildFavoriteList(ctx)
+	ctx.View.FavoriteList.SetCurrentItem(newCurrentIDx)
+	saveFavoritesDebounced(ctx)
+}
+
+// saveFavoritesDebounced defers saveFavorites by 200ms, resetting the timer on each call.
+func saveFavoritesDebounced(ctx *context.AppContext) {
+	if favoritesDebouncer != nil {
+		favoritesDebouncer.Stop()
+	}
+	favoritesDebouncer = time.AfterFunc(200*time.Millisecond, func() { saveFavorites(ctx) })
+}
+
+// saveFavorites persists the current visible order while preserving hidden entries.
+func saveFavorites(ctx *context.AppContext) {
+	var hidden []components.FavoriteItem
+	for _, lf := range config.GetLocalFavorites() {
+		if lf.Hidden {
+			hidden = append(hidden, lf)
+		}
+	}
+	config.SaveLocalFavorites(append(ctx.FavoriteList, hidden...))
+}
+
+func buildFavoriteList(ctx *context.AppContext) {
+	ctx.View.FavoriteList.Clear()
+	for i, fav := range ctx.FavoriteList {
+		ctx.View.FavoriteList.InsertItem(i, fav.Name, "", 0, func() {})
+	}
+}
+
+// toggleFavorite adds or removes channel from the favorites list.
+// Removals are persisted as hidden=true so remote favorites for the same channel stay suppressed.
+func toggleFavorite(ctx *context.AppContext, channel *components.ChannelItem) {
+	for i, fav := range ctx.FavoriteList {
+		if fav.ChannelID == channel.ID {
+			ctx.FavoriteList = append(ctx.FavoriteList[:i], ctx.FavoriteList[i+1:]...)
+			buildFavoriteList(ctx)
+			setLocalFavoriteHidden(channel.ID, channel.Name, true)
+			return
+		}
+	}
+	ctx.FavoriteList = append(ctx.FavoriteList, components.FavoriteItem{
+		ChannelID: channel.ID,
+		Name:      channel.Name,
+	})
+	buildFavoriteList(ctx)
+	setLocalFavoriteHidden(channel.ID, channel.Name, false)
+}
+
+// setLocalFavoriteHidden updates or inserts a local favorite entry with the given hidden state.
+func setLocalFavoriteHidden(channelID int64, name string, hidden bool) {
+	localFavs := config.GetLocalFavorites()
+	for i, lf := range localFavs {
+		if lf.ChannelID == channelID {
+			localFavs[i].Hidden = hidden
+			config.SaveLocalFavorites(localFavs)
+			return
+		}
+	}
+	config.SaveLocalFavorites(append(localFavs, components.FavoriteItem{
+		Name:      name,
+		ChannelID: channelID,
+		Hidden:    hidden,
+	}))
 }

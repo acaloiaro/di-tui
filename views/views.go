@@ -260,6 +260,9 @@ func GetKeybindings() (bindings []UIKeybinding) {
 		{Shortcut: "p", Description: "Pause", Func: func() {}},
 		{Shortcut: "Space", Description: "Pause", Func: func() {}},
 		{Shortcut: "Enter", Description: "Play", Func: func() {}},
+		{Shortcut: "S-f", Description: "Toggle Favorite", Func: func() {}},
+		{Shortcut: "S-j", Description: "Move Fav Down", Func: func() {}},
+		{Shortcut: "S-k", Description: "Move Fav Up", Func: func() {}},
 	}
 
 	return bindings

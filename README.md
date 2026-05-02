@@ -73,9 +73,23 @@ DI.fm is the default network, but other audio addict networks can be chosen with
 
 ### Favorites
 
-Favorites must be edited on the web player (e.g. at [DI.fm](https://di.fm)) and cannot be
-edited via this app. It used to be possible to edit favorites from this app, but DI.fm
-introduced limitations on their API.
+Favorites are a merge of your remote favorites and an optional local list in
+`~/.config/di-tui/config.yml`. If no local favorites are configured, the remote list is
+used as-is.
+
+Use `Shift+F` to toggle a channel as a favorite from either pane, and `Shift+K`/`Shift+J`
+to reorder. Changes are written to config immediately.
+
+Local favorites can also be defined manually:
+
+```yml
+favorites:
+  - name: Trance
+    channel_id: 123
+```
+
+Channels removed via `Shift+F` are stored with `hidden: true`, which suppresses them even
+if they appear in your remote favorites.
 
 ## Dependencies
 

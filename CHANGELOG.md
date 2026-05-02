@@ -2,7 +2,15 @@
 # Changelog
 
 
-## [v1.13.4](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.4) (2026-04-25 15:55:27 +0000 UTC)
+## [v1.14.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.14.0) (2026-05-02 15:59:24 +0000 UTC)
+
+### Features
+
+- feat: local favorites support
+
+
+
+## [v1.13.4](https://github.com/acaloiaro/di-tui/releases/tag/v1.13.4) (2026-04-25 15:56:24 +0000 UTC)
 
 ### Bug Fixes
 
@@ -188,13 +196,13 @@
 ## [v1.3.33](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.33) (2024-01-15 18:10:31 -0700 -0700)
 
 
-## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
-
-
 ## [v1.3.30](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.30) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.35](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.35) (2024-01-15 18:10:31 -0700 -0700)
+
+
+## [v1.3.34](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.34) (2024-01-15 18:10:31 -0700 -0700)
 
 
 ## [v1.3.29](https://github.com/acaloiaro/di-tui/releases/tag/v1.3.29) (2024-01-15 15:54:23 -0700 -0700)

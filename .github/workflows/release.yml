@@ -33,16 +33,10 @@ jobs:
           git add CHANGELOG.md
           git commit -m "bump di-tui version" --allow-empty
       - name: Build binaries
-        shell: bash -c "nix develop --impure -c bash -- {0}"
         run: |
-          export CGO_ENABLED=0
-          targets="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64"
-          for target in $targets; do
-            os=$(dirname $target)
-            arch=$(basename $target)
-            output_name="di-tui-${os}-${arch}"
-            echo "Building for $os/$arch..."
-            GOOS=$os GOARCH=$arch go build -o $output_name main.go
+          for target in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64; do
+            nix build .#di-tui-$target -o result-$target
+            cp result-$target/bin/di-tui-$target ./
           done
       - name: Create Release
         shell: bash -c "nix develop --impure -c bash -- {0}"

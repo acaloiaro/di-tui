@@ -18,4 +18,5 @@ buildGoApplication {
   pwd = ./.;
   src = ./.;
   modules = ./gomod2nix.toml;
+  subPackages = [ "." ];
 }

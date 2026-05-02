@@ -206,10 +206,7 @@ func ListFavorites(ctx *context.AppContext) (favorites []components.FavoriteItem
 		k := i + 1
 		origFavoriteName := cfg.Section(sec).Key(fmt.Sprintf("Title%d", k)).String()
 		favoriteName := strings.Replace(origFavoriteName, networkNamePrefix, "", 1)
-		favorites = append(favorites, components.FavoriteItem{
-			Name:        favoriteName,
-			PlaylistURL: cfg.Section(sec).Key(fmt.Sprintf("File%d", k)).String(),
-		})
+		favorites = append(favorites, components.FavoriteItem{Name: favoriteName})
 	}
 	slices.SortFunc(favorites, func(a components.FavoriteItem, b components.FavoriteItem) int {
 		return strings.Compare(a.Name, b.Name)
@@ -286,11 +283,12 @@ func Stream(url string, ctx *context.AppContext, streamCtx c.Context) {
 	}
 }
 
-// FavoriteItemChannel identifies the ChannelItem that corresponds with a FavoriteItem
+// FavoriteItemChannel identifies the ChannelItem that corresponds with a FavoriteItem.
+// Matches by ChannelID when set, falling back to name.
 func FavoriteItemChannel(ctx *context.AppContext, favorite components.FavoriteItem) (channel *components.ChannelItem) {
-	for _, chn := range ctx.ChannelList {
-		if chn.Name == favorite.Name {
-			channel = &chn
+	for i, chn := range ctx.ChannelList {
+		if (favorite.ChannelID != 0 && chn.ID == favorite.ChannelID) || chn.Name == favorite.Name {
+			channel = &ctx.ChannelList[i]
 			return
 		}
 	}

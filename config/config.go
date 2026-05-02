@@ -12,7 +12,8 @@ import (
 // TODO This application is migrating to having all of its configuration read into this `Config` struct, rather than
 // using individual `ReadType` functions from viper. Migrating all `Get*` methods to use `Config` instead.
 type Config struct {
-	Theme map[string]string
+	Favorites []components.FavoriteItem `yaml:"favorites" mapstructure:"favorites"`
+	Theme     map[string]string
 }
 
 var C Config
@@ -102,6 +103,29 @@ func SaveAPIKey(key string) {
 func SaveNetwork(network *components.Network) {
 	viper.Set("network", network)
 
+	saveConfig()
+}
+
+// GetLocalFavorites returns the user's locally configured favorites
+func GetLocalFavorites() []components.FavoriteItem {
+	return C.Favorites
+}
+
+// SaveLocalFavorites persists the ordered favorites list to the config file
+func SaveLocalFavorites(favorites []components.FavoriteItem) {
+	data := make([]map[string]any, len(favorites))
+	for i, f := range favorites {
+		entry := map[string]any{
+			"name":       f.Name,
+			"channel_id": f.ChannelID,
+		}
+		if f.Hidden {
+			entry["hidden"] = true
+		}
+		data[i] = entry
+	}
+	viper.Set("favorites", data)
+	C.Favorites = favorites
 	saveConfig()
 }
 

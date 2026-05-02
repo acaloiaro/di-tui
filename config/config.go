@@ -106,18 +106,39 @@ func SaveNetwork(network *components.Network) {
 	saveConfig()
 }
 
-// GetLocalFavorites returns the user's locally configured favorites
-func GetLocalFavorites() []components.FavoriteItem {
-	return C.Favorites
+// GetLocalFavorites returns locally configured favorites for the given network.
+// Favorites with no network set are included for backward compatibility.
+func GetLocalFavorites(network string) []components.FavoriteItem {
+	var result []components.FavoriteItem
+	for _, f := range C.Favorites {
+		if f.Network == "" || f.Network == network {
+			result = append(result, f)
+		}
+	}
+	return result
 }
 
-// SaveLocalFavorites persists the ordered favorites list to the config file
-func SaveLocalFavorites(favorites []components.FavoriteItem) {
-	data := make([]map[string]any, len(favorites))
-	for i, f := range favorites {
+// SaveLocalFavorites persists favorites for the given network, preserving favorites
+// belonging to other networks.
+func SaveLocalFavorites(network string, favorites []components.FavoriteItem) {
+	var other []components.FavoriteItem
+	for _, f := range C.Favorites {
+		if f.Network != "" && f.Network != network {
+			other = append(other, f)
+		}
+	}
+
+	for i := range favorites {
+		favorites[i].Network = network
+	}
+
+	all := append(other, favorites...)
+	data := make([]map[string]any, len(all))
+	for i, f := range all {
 		entry := map[string]any{
 			"name":       f.Name,
 			"channel_id": f.ChannelID,
+			"network":    f.Network,
 		}
 		if f.Hidden {
 			entry["hidden"] = true
@@ -125,7 +146,7 @@ func SaveLocalFavorites(favorites []components.FavoriteItem) {
 		data[i] = entry
 	}
 	viper.Set("favorites", data)
-	C.Favorites = favorites
+	C.Favorites = all
 	saveConfig()
 }
 

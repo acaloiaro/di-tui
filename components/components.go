@@ -25,6 +25,7 @@ type FavoriteItem struct {
 	ChannelID int64  `yaml:"channel_id" mapstructure:"channel_id"`
 	Hidden    bool   `yaml:"hidden"     mapstructure:"hidden"`
 	Name      string `yaml:"name"       mapstructure:"name"`
+	Network   string `yaml:"network"    mapstructure:"network"`
 }
 
 // CurrentlyPlaying contains the currently playing metadata for a di.fm channel

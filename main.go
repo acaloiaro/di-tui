@@ -249,7 +249,7 @@ func FetchFavoritesAndChannels() {
 		}
 	}
 
-	favorites := mergeFavorites(remoteFavs, config.GetLocalFavorites())
+	favorites := mergeFavorites(remoteFavs, config.GetLocalFavorites(ctx.Network.ShortName))
 	for i, fav := range favorites {
 		ctx.View.FavoriteList.InsertItem(i, fav.Name, "", 0, func() {})
 	}
@@ -326,12 +326,12 @@ func saveFavoritesDebounced(ctx *context.AppContext) {
 // saveFavorites persists the current visible order while preserving hidden entries.
 func saveFavorites(ctx *context.AppContext) {
 	var hidden []components.FavoriteItem
-	for _, lf := range config.GetLocalFavorites() {
+	for _, lf := range config.GetLocalFavorites(ctx.Network.ShortName) {
 		if lf.Hidden {
 			hidden = append(hidden, lf)
 		}
 	}
-	config.SaveLocalFavorites(append(ctx.FavoriteList, hidden...))
+	config.SaveLocalFavorites(ctx.Network.ShortName, append(ctx.FavoriteList, hidden...))
 }
 
 func buildFavoriteList(ctx *context.AppContext) {
@@ -348,7 +348,7 @@ func toggleFavorite(ctx *context.AppContext, channel *components.ChannelItem) {
 		if fav.ChannelID == channel.ID {
 			ctx.FavoriteList = append(ctx.FavoriteList[:i], ctx.FavoriteList[i+1:]...)
 			buildFavoriteList(ctx)
-			setLocalFavoriteHidden(channel.ID, channel.Name, true)
+			setLocalFavoriteHidden(ctx.Network.ShortName, channel.ID, channel.Name, true)
 			return
 		}
 	}
@@ -357,20 +357,20 @@ func toggleFavorite(ctx *context.AppContext, channel *components.ChannelItem) {
 		Name:      channel.Name,
 	})
 	buildFavoriteList(ctx)
-	setLocalFavoriteHidden(channel.ID, channel.Name, false)
+	setLocalFavoriteHidden(ctx.Network.ShortName, channel.ID, channel.Name, false)
 }
 
 // setLocalFavoriteHidden updates or inserts a local favorite entry with the given hidden state.
-func setLocalFavoriteHidden(channelID int64, name string, hidden bool) {
-	localFavs := config.GetLocalFavorites()
+func setLocalFavoriteHidden(network string, channelID int64, name string, hidden bool) {
+	localFavs := config.GetLocalFavorites(network)
 	for i, lf := range localFavs {
 		if lf.ChannelID == channelID {
 			localFavs[i].Hidden = hidden
-			config.SaveLocalFavorites(localFavs)
+			config.SaveLocalFavorites(network, localFavs)
 			return
 		}
 	}
-	config.SaveLocalFavorites(append(localFavs, components.FavoriteItem{
+	config.SaveLocalFavorites(network, append(localFavs, components.FavoriteItem{
 		Name:      name,
 		ChannelID: channelID,
 		Hidden:    hidden,

@@ -7,8 +7,11 @@ import (
 
 	"github.com/acaloiaro/di-tui/components"
 	"github.com/acaloiaro/di-tui/views"
-	"github.com/jfreymuth/pulse"
 )
+
+type Player interface {
+	Close()
+}
 
 // CreateAppContext creates the application context
 func CreateAppContext(vc *views.ViewContext) *AppContext {
@@ -38,7 +41,7 @@ type AppContext struct {
 	Network            *components.Network
 	HighlightedChannel *components.ChannelItem
 	IsPlaying          bool
-	Player             *pulse.PlaybackStream
+	Player             Player
 	ShowStatus         bool // The status pane will be visible when true
 	StatusChannel      chan components.StatusMessage
 	StreamCancel       c.CancelFunc

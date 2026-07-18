@@ -22,7 +22,7 @@ import (
 var ctx *context.AppContext
 var favoritesDebouncer *time.Timer
 
-const VERSION = "1.14.0"
+const VERSION = "1.14.1"
 
 func main() {
 	var err error

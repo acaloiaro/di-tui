@@ -8,6 +8,8 @@ A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 ---
 
+If you're seeing this on Github, this repository is a mirror of [https://code.adriano.fyi/me/di-tui/](https://code.adriano.fyi/me/di-tui/)
+
 This app began as di.fm player, but now supports the whole Audio Addict network
 
 - Classical Radio

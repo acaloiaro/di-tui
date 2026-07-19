@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: https://github.com/cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Detect version bump
+        id: ver
+        shell: bash -c "nix develop --impure -c bash -- {0}"
+        run: |
+          OLD=$(svu current --strip-prefix)
+          NEW=$(svu next --strip-prefix)
+          if [ "$OLD" = "$NEW" ]; then
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "bump=true" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version files and generate changelog
+        if: steps.ver.outputs.bump == 'true'
+        shell: bash -c "nix develop --impure -c bash -- {0}"
+        run: |
+          git config user.email "actions@code.adriano.fyi"
+          git config user.name "Forgejo Actions"
+          sed -i "s/${{ steps.ver.outputs.old }}/${{ steps.ver.outputs.new }}/g" default.nix main.go
+          git-chglog --next-tag="v${{ steps.ver.outputs.new }}" > CHANGELOG.md
+          git-chglog --next-tag="v${{ steps.ver.outputs.new }}" "v${{ steps.ver.outputs.new }}" > /tmp/release-notes.md
+          git add default.nix main.go CHANGELOG.md
+          git commit -m "bump di-tui version"
+
+      - name: Build binaries
+        if: steps.ver.outputs.bump == 'true'
+        shell: bash -c "nix develop --impure -c bash -- {0}"
+        run: |
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+            os=$(dirname "$target")
+            arch=$(basename "$target")
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "di-tui-${os}-${arch}" main.go
+          done
+
+      - name: Push commit and tag
+        if: steps.ver.outputs.bump == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.ver.outputs.new }}"
+          FORGEJO_HOST=$(echo "$GITHUB_SERVER_URL" | sed 's|https://||')
+          git remote set-url origin "https://oauth2:${TOKEN}@${FORGEJO_HOST}/me/di-tui.git"
+          git push
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create release
+        if: steps.ver.outputs.bump == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.ver.outputs.new }}"
+          curl -sf -X POST \
+            -H "Authorization: token ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${GITHUB_SERVER_URL}/api/v1/repos/me/di-tui/releases" \
+            -d "{\"tag_name\":\"${VERSION}\",\"name\":\"${VERSION}\",\"body\":$(jq -Rs . /tmp/release-notes.md)}"
+
+      - name: Upload to Forgejo packages
+        if: steps.ver.outputs.bump == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.ver.outputs.new }}"
+          for binary in di-tui-linux-amd64 di-tui-linux-arm64 di-tui-darwin-amd64 di-tui-darwin-arm64; do
+            curl -sf -X PUT \
+              -H "Authorization: token ${TOKEN}" \
+              --upload-file "./${binary}" \
+              "${GITHUB_SERVER_URL}/api/packages/me/generic/di-tui/${VERSION}/${binary}"
+          done

@@ -2,7 +2,28 @@
 # Changelog
 
 
-## [v1.14.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.14.0) (2026-05-02 15:59:24 +0000 UTC)
+## [v1.15.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.15.0) (2026-07-19 19:09:33 +0000 UTC)
+
+### Documentation
+
+- docs: mention that github is a mirror
+
+
+### Features
+
+- feat: create first forgejo release
+
+
+
+## [v1.14.1](https://github.com/acaloiaro/di-tui/releases/tag/v1.14.1) (2026-07-18 16:28:52 +0000 UTC)
+
+### Bug Fixes
+
+- fix: favorites are now network-local
+
+
+
+## [v1.14.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.14.0) (2026-05-02 16:00:16 +0000 UTC)
 
 ### Features
 
@@ -137,6 +158,14 @@
 
 
 ## [v1.10.0](https://github.com/acaloiaro/di-tui/releases/tag/v1.10.0) (2024-10-09 14:09:20 -0700 -0700)
+
+
+## [1.9.3](https://github.com/acaloiaro/di-tui/releases/tag/1.9.3) (2024-10-09 20:41:48 +0000 UTC)
+
+### Bug Fixes
+
+- fix: crash when favorites and channels unavailable
+
 
 
 ## [1.9.2](https://github.com/acaloiaro/di-tui/releases/tag/1.9.2) (2024-06-02 17:56:50 +0000 UTC)
@@ -310,3 +339,6 @@
 
 
 ## [v1.0.1](https://github.com/acaloiaro/di-tui/releases/tag/v1.0.1) (2020-11-08 10:22:32 -0800 -0800)
+
+
+

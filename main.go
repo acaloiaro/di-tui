@@ -12,6 +12,7 @@ import (
 	"github.com/acaloiaro/di-tui/context"
 	"github.com/acaloiaro/di-tui/difm"
 	"github.com/acaloiaro/di-tui/mpris"
+	"github.com/acaloiaro/di-tui/player"
 	"github.com/acaloiaro/di-tui/views"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -30,11 +31,16 @@ func main() {
 	passwordFlag := pflag.String("password", "", "your di.fm password")
 	versionFlag := pflag.Bool("version", false, "print the current di-tui version")
 	networkFlag := pflag.String("network", viper.GetString("network.shortname"), "the audioaddict network to connect to")
+	audioProviderFlag := pflag.String("audio-provider", player.DefaultAudioProvider(), "audio output provider (coreaudio or pulse on macOS; pulse elsewhere)")
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 
 	if *versionFlag {
 		fmt.Printf("di-tui %s\n", VERSION)
+		return
+	}
+	if err = player.ConfigureAudioProvider(*audioProviderFlag); err != nil {
+		fmt.Println(err)
 		return
 	}
 	network, err := difm.GetNetwork(*networkFlag)

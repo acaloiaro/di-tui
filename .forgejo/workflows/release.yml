@@ -39,7 +39,7 @@ jobs:
           git config user.name "Forgejo Actions"
           sed -i "s/${{ steps.ver.outputs.old }}/${{ steps.ver.outputs.new }}/g" default.nix main.go
           git-chglog --next-tag="v${{ steps.ver.outputs.new }}" > CHANGELOG.md
-          git-chglog --next-tag="v${{ steps.ver.outputs.new }}" "v${{ steps.ver.outputs.new }}" > /tmp/release-notes.md
+          git-chglog --next-tag="v${{ steps.ver.outputs.new }}" "v${{ steps.ver.outputs.new }}" > release-notes.md
           git add default.nix main.go CHANGELOG.md
           git commit -m "bump di-tui version"
 
@@ -74,7 +74,7 @@ jobs:
             -H "Authorization: token ${TOKEN}" \
             -H "Content-Type: application/json" \
             "https://code.adriano.fyi/api/v1/repos/me/di-tui/releases" \
-            -d "{\"tag_name\":\"${VERSION}\",\"name\":\"${VERSION}\",\"body\":$(jq -Rs . /tmp/release-notes.md)}" \
+            -d "{\"tag_name\":\"${VERSION}\",\"name\":\"${VERSION}\",\"body\":$(jq -Rs . release-notes.md)}" \
             | jq -r .id)
 
           for binary in di-tui-linux-amd64 di-tui-linux-arm64 di-tui-darwin-amd64 di-tui-darwin-arm64; do

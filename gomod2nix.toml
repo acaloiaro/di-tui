@@ -1,6 +1,12 @@
 schema = 3
 
 [mod]
+  [mod."github.com/ebitengine/oto/v3"]
+    version = "v3.3.3"
+    hash = "sha256-HH9bSlKzEQU2S4/VqdjxKZxWTqYgl3Z3Zaf3rSHZ1zs="
+  [mod."github.com/ebitengine/purego"]
+    version = "v0.8.0"
+    hash = "sha256-fM+5HYIKDPLDrvv2f9/WQG0F20+o0+At0AbPQtF2JP0="
   [mod."github.com/fsnotify/fsnotify"]
     version = "v1.4.7"
     hash = "sha256-j/Ts92oXa3k1MFU7Yd8/AqafRTsFn7V2pDKCyDJLah8="
@@ -77,8 +83,8 @@ schema = 3
     version = "v1.2.0"
     hash = "sha256-RUsfBl9xvHk8H6SPwiLi/BpHjkyO/YLvlFmRfGRIW1U="
   [mod."golang.org/x/sys"]
-    version = "v0.6.0"
-    hash = "sha256-zAgxiTuL24sGhbXrna9R1UYqLQh46ldztpumOScmduY="
+    version = "v0.25.0"
+    hash = "sha256-PXZ9EQZ7SFpcL7d3E1+KGTxziYlHEIZPfoXEbnaVD3I="
   [mod."golang.org/x/term"]
     version = "v0.5.0"
     hash = "sha256-f3DiX7NkDsEZpPS+PbmnOH9F5WHFZ1sQrfFg/T2UPno="

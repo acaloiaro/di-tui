@@ -93,23 +93,31 @@ if they appear in your remote favorites.
 
 ## Dependencies
 
-### PulseAudio
+### Audio
 
-Both linux and MacOS depend on pulseaudio to be running.
+Linux uses PulseAudio. On Debian / Ubuntu, install it with:
 
-#### MacOS
+`apt install pulseaudio`
 
-By default, pulseaudio on MacOS runs as "root", which is not ideal. PulseAudio is best run by non-root users. By symbolically linking the pulseaudio plist file into your user's `~/Library/LaunchAgents/`, it runs as your user.
+macOS uses the native Core Audio output by default and requires no additional audio service.
+To use a running PulseAudio server instead, start `di-tui` with
+`--audio-provider pulse`. Switch back with `--audio-provider coreaudio`.
 
-```
+#### PulseAudio on MacOS
+
+Install PulseAudio with Homebrew and run it as your user:
+
+```sh
 brew install pulseaudio
-ln -s $(brew info pulseaudio | grep "/usr/local/Cellar" | awk '{print $1}')//homebrew.mxcl.pulseaudio.plist ~/Library/LaunchAgents
 brew services start pulseaudio
 ```
 
-#### Debian / Ubuntu
+Running `brew services` without `sudo` registers PulseAudio in your user's
+`~/Library/LaunchAgents` and starts it again when you log in. Check its status with:
 
-`apt install pulseaudio`
+```sh
+brew services info pulseaudio
+```
 
 ## MPRIS/D-bus support 
 
@@ -146,5 +154,3 @@ theme:
   primary_text_color: "#969896"
   secondary_text_color: "#81a2be"
 ```
-
-

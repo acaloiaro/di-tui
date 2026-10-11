@@ -30,9 +30,7 @@ Binary releases are available in [releases](https://code.adriano.fyi/me/di-tui/r
 
 `go install github.com/acaloiaro/di-tui@latest`
 
-### Nixpkgs (currently unstable channel only)
-
-`di-tui` is currently in nixpkgs/nixos-unstable.
+### Nixpkgs
 
 ### Run the flake
 

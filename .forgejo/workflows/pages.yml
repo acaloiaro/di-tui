@@ -1,0 +1,22 @@
+name: Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - site/**
+      - .forgejo/workflows/pages.yml
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: https://codeberg.org/git-pages/action@v2
+        with:
+          site: https://${{ forgejo.repository_owner }}.pages.adriano.fyi/${{ forgejo.event.repository.name }}/
+          token: ${{ forgejo.token }}
+          source: site/

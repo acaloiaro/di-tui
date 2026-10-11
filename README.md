@@ -4,7 +4,7 @@ A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/di-tui.svg)](https://repology.org/project/di-tui/versions)
 
-![App Screenshot](https://github.com/acaloiaro/di-tui/assets/3331648/5b85343f-d098-48d8-ae98-4bd1e99e0a8b)
+![App Screenshot](site/screenshot.png)
 
 ---
 
@@ -24,7 +24,7 @@ This app began as di.fm player, but now supports the whole Audio Addict network
 
 ### Binary Releases
 
-Binary releases are available in [releases](https://github.com/acaloiaro/di-tui/releases).
+Binary releases are available in [releases](https://code.adriano.fyi/me/di-tui/releases).
 
 ### `go install`
 

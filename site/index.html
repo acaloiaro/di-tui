@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A simple terminal UI player for di.fm Premium">
+<meta name="color-scheme" content="light dark">
+<title>di-tui</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: light-dark(#fdfdf8, #111);
+    --fg: light-dark(#1a1a1a, #e4e4dc);
+    --dim: light-dark(#555, #a0a097);
+    --accent: light-dark(#0b5394, #8ec5ff);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+    max-width: 72ch;
+    background: var(--bg);
+    color: var(--fg);
+    font: 1rem/1.6 ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  }
+  h1, h2, h3 { font-size: inherit; margin: 2rem 0 0.25rem; }
+  h1 { margin-top: 0; }
+  h2 { text-transform: uppercase; }
+  h3 { font-weight: normal; text-decoration: underline; text-underline-offset: 0.2em; }
+  p, ul { margin-block: 0 1rem; }
+  ul { padding-left: 2ch; }
+  section > :not(h2) { margin-left: 4ch; }
+  pre { margin-block: 0 1rem; overflow-x: auto; }
+  code { font: inherit; }
+  pre code::before { content: "$ "; color: var(--dim); user-select: none; }
+  img { display: block; max-width: 100%; height: auto; margin-block: 1rem; border: 1px solid var(--dim); }
+  a { color: var(--accent); text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 48ch) {
+    section > :not(h2) { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>di-tui</h1>
+  <p>A simple terminal UI player for <a href="http://di.fm">di.fm Premium</a></p>
+  <img src="screenshot.png" alt="App Screenshot" width="1903" height="1008">
+</header>
+
+<main>
+<section>
+  <p>This app began as di.fm player, but now supports the whole Audio Addict network</p>
+  <ul>
+    <li>Classical Radio</li>
+    <li>DI.fm</li>
+    <li>Radio Tunes</li>
+    <li>Rock Radio</li>
+    <li>Jazz Radio</li>
+    <li>Zen Radio</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Run / Install</h2>
+
+  <h3>Binary Releases</h3>
+  <p>Binary releases are available in <a href="https://code.adriano.fyi/me/di-tui/releases">releases</a>.</p>
+
+  <h3><code>go install</code></h3>
+  <pre><code>go install github.com/acaloiaro/di-tui@latest</code></pre>
+
+  <h3>Nixpkgs (currently unstable channel only)</h3>
+  <p><code>di-tui</code> is currently in nixpkgs/nixos-unstable.</p>
+
+  <h3>Run the flake</h3>
+  <pre><code>nix run github:acaloiaro/di-tui</code></pre>
+</section>
+
+<section>
+  <h2>Dependencies</h2>
+  <p>Both linux and MacOS depend on pulseaudio to be running.</p>
+</section>
+</main>
+
+<footer>
+  <p><a href="https://code.adriano.fyi/me/di-tui/">https://code.adriano.fyi/me/di-tui/</a></p>
+</footer>
+</body>
+</html>

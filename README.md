@@ -30,7 +30,7 @@ Binary releases are available in [releases](https://code.adriano.fyi/me/di-tui/r
 
 `go install github.com/acaloiaro/di-tui@latest`
 
-### Nixpkgs
+### [Nixpkgs](https://search.nixos.org/packages?channel=unstable&show=di-tui&query=di-tui)
 
 ### Run the flake
 

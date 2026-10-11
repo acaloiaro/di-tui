@@ -35,7 +35,7 @@ Binary releases are available in [releases](https://code.adriano.fyi/me/di-tui/r
 ### Run the flake
 
 ```
-nix run github:acaloiaro/di-tui
+nix run https://flakes.adriano.fyi/di-tui
 ```
 
 ## Usage

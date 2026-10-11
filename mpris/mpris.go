@@ -3,8 +3,8 @@ package mpris
 import (
 	"time"
 
-	"github.com/acaloiaro/di-tui/app"
-	"github.com/acaloiaro/di-tui/context"
+	"adriano.fyi/di-tui/app"
+	"adriano.fyi/di-tui/context"
 	"github.com/godbus/dbus/v5"
 	"github.com/quarckster/go-mpris-server/pkg/server"
 	"github.com/quarckster/go-mpris-server/pkg/types"

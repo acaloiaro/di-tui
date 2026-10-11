@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/acaloiaro/di-tui/components"
-	"github.com/acaloiaro/di-tui/config"
-	"github.com/acaloiaro/di-tui/context"
-	"github.com/acaloiaro/di-tui/player"
+	"adriano.fyi/di-tui/components"
+	"adriano.fyi/di-tui/config"
+	"adriano.fyi/di-tui/context"
+	"adriano.fyi/di-tui/player"
 	ini "gopkg.in/ini.v1"
 )
 

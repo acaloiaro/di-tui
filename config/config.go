@@ -5,7 +5,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/acaloiaro/di-tui/components"
+	"adriano.fyi/di-tui/components"
 	"github.com/spf13/viper"
 )
 

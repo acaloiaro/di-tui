@@ -14,11 +14,11 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/acaloiaro/di-tui/components"
-	"github.com/acaloiaro/di-tui/config"
-	"github.com/acaloiaro/di-tui/context"
-	"github.com/acaloiaro/di-tui/difm"
-	"github.com/acaloiaro/di-tui/player"
+	"adriano.fyi/di-tui/components"
+	"adriano.fyi/di-tui/config"
+	"adriano.fyi/di-tui/context"
+	"adriano.fyi/di-tui/difm"
+	"adriano.fyi/di-tui/player"
 	"github.com/nfnt/resize"
 )
 

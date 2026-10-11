@@ -1,4 +1,4 @@
-module github.com/acaloiaro/di-tui
+module adriano.fyi/di-tui
 
 go 1.21
 

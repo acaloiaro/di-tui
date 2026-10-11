@@ -3,7 +3,7 @@ package player
 import (
 	"io"
 
-	"github.com/acaloiaro/di-tui/context"
+	"adriano.fyi/di-tui/context"
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/jfreymuth/pulse"
 	"github.com/jfreymuth/pulse/proto"

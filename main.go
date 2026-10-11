@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/acaloiaro/di-tui/app"
-	"github.com/acaloiaro/di-tui/components"
-	"github.com/acaloiaro/di-tui/config"
-	"github.com/acaloiaro/di-tui/context"
-	"github.com/acaloiaro/di-tui/difm"
-	"github.com/acaloiaro/di-tui/mpris"
-	"github.com/acaloiaro/di-tui/views"
+	"adriano.fyi/di-tui/app"
+	"adriano.fyi/di-tui/components"
+	"adriano.fyi/di-tui/config"
+	"adriano.fyi/di-tui/context"
+	"adriano.fyi/di-tui/difm"
+	"adriano.fyi/di-tui/mpris"
+	"adriano.fyi/di-tui/views"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/spf13/pflag"
@@ -58,7 +58,7 @@ func main() {
 	token := config.GetToken()
 	if token == "" {
 		fmt.Println("Authenticate by running: di-tui --username USER --password PASSWORD\n\n" +
-			"Or, visit https://github.com/acaloiaro/di-tui#authenticate for other options.")
+			"Or, visit https://adriano.fyi/di-tui#authenticate for other options.")
 		os.Exit(1)
 	}
 

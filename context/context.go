@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/acaloiaro/di-tui/components"
-	"github.com/acaloiaro/di-tui/views"
+	"adriano.fyi/di-tui/components"
+	"adriano.fyi/di-tui/views"
 	"github.com/jfreymuth/pulse"
 )
 

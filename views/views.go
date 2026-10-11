@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/acaloiaro/di-tui/components"
-	"github.com/acaloiaro/di-tui/config"
+	"adriano.fyi/di-tui/components"
+	"adriano.fyi/di-tui/config"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )

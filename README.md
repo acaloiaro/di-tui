@@ -28,7 +28,7 @@ Binary releases are available in [releases](https://code.adriano.fyi/me/di-tui/r
 
 ### `go install`
 
-`go install github.com/acaloiaro/di-tui@latest`
+`go install adriano.fyi/di-tui@latest`
 
 ### [Nixpkgs](https://search.nixos.org/packages?channel=unstable&show=di-tui&query=di-tui)
 

@@ -1,6 +1,7 @@
 package mpris
 
 import (
+	"sync"
 	"time"
 
 	"adriano.fyi/di-tui/app"
@@ -10,12 +11,7 @@ import (
 	"github.com/quarckster/go-mpris-server/pkg/types"
 )
 
-var (
-	s             *server.Server
-	statusPlaying = map[string]dbus.Variant{
-		"PlaybackStatus": dbus.MakeVariant(types.PlaybackStatusPlaying),
-	}
-)
+var s *server.Server
 
 type Root struct{}
 
@@ -54,113 +50,156 @@ func (r Root) SupportedMimeTypes() ([]string, error) {
 var _ types.OrgMprisMediaPlayer2Adapter = Root{}
 
 type Player struct {
-	ctx      *context.AppContext
+	ctx *context.AppContext
+
+	mu       sync.Mutex
 	metaData types.Metadata
+	status   types.PlaybackStatus
 }
 
-func (p Player) Next() error {
+// emitStatus records the playback status and announces it if it changed.
+func (p *Player) emitStatus(status types.PlaybackStatus) {
+	p.mu.Lock()
+	changed := p.status != status
+	p.status = status
+	p.mu.Unlock()
+
+	if !changed || s.Conn == nil {
+		return
+	}
+	props := map[string]dbus.Variant{
+		"PlaybackStatus": dbus.MakeVariant(status),
+	}
+	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", props, []string{})
+}
+
+// emitMetadata records the current track and announces it if it changed.
+//
+// Only the populated keys are sent: some MPRIS consumers (gnome-shell's media
+// widget, see https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/9394) do
+// work proportional to the number of keys on every change.
+func (p *Player) emitMetadata(artist, title string) {
+	p.mu.Lock()
+	changed := p.metaData.Title != title || len(p.metaData.Artist) != 1 || p.metaData.Artist[0] != artist
+	p.metaData.Artist = []string{artist}
+	p.metaData.Title = title
+	trackID := p.metaData.TrackId
+	p.mu.Unlock()
+
+	if !changed || s.Conn == nil {
+		return
+	}
+	metadata := map[string]dbus.Variant{
+		"mpris:trackid": dbus.MakeVariant(dbus.ObjectPath(trackID)),
+	}
+	if title != "" {
+		metadata["xesam:title"] = dbus.MakeVariant(title)
+	}
+	if artist != "" {
+		metadata["xesam:artist"] = dbus.MakeVariant([]string{artist})
+	}
+	props := map[string]dbus.Variant{
+		"Metadata": dbus.MakeVariant(metadata),
+	}
+	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", props, []string{})
+}
+
+func (p *Player) Next() error {
 	return nil
 }
 
-func (p Player) Previous() error {
+func (p *Player) Previous() error {
 	return nil
 }
 
-func (p Player) Pause() error {
+func (p *Player) Pause() error {
 	return nil
 }
 
-func (p Player) PlayPause() error {
+func (p *Player) PlayPause() error {
 	app.TogglePause(p.ctx)
 	newStatus := types.PlaybackStatusPaused
 	if p.ctx.IsPlaying {
 		newStatus = types.PlaybackStatusPlaying
 	}
-	status := map[string]dbus.Variant{
-		"PlaybackStatus": dbus.MakeVariant(newStatus),
-	}
-	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", status, []string{})
+	p.emitStatus(newStatus)
 	return nil
 }
 
-func (p Player) Stop() error {
+func (p *Player) Stop() error {
 	app.Stop(p.ctx)
-
-	status := map[string]dbus.Variant{
-		"PlaybackStatus": dbus.MakeVariant(types.PlaybackStatusStopped),
-	}
-	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", status, []string{})
-
+	p.emitStatus(types.PlaybackStatusStopped)
 	return nil
 }
 
-func (p Player) Play() error {
+func (p *Player) Play() error {
 	app.Play(p.ctx)
-	status := map[string]dbus.Variant{
-		"PlaybackStatus": dbus.MakeVariant(types.PlaybackStatusPlaying),
-	}
-	s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", status, []string{})
+	p.emitStatus(types.PlaybackStatusPlaying)
 	return nil
 }
 
-func (p Player) Seek(offset types.Microseconds) error {
+func (p *Player) Seek(offset types.Microseconds) error {
 	return nil
 }
 
-func (p Player) SetPosition(trackId string, position types.Microseconds) error {
+func (p *Player) SetPosition(trackId string, position types.Microseconds) error {
 	return nil
 }
 
-func (p Player) OpenUri(uri string) error {
+func (p *Player) OpenUri(uri string) error {
 	return nil
 }
 
-func (p Player) PlaybackStatus() (types.PlaybackStatus, error) {
-	return types.PlaybackStatusStopped, nil
+func (p *Player) PlaybackStatus() (types.PlaybackStatus, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.status, nil
 }
 
-func (p Player) Rate() (float64, error) {
+func (p *Player) Rate() (float64, error) {
 	return 1.2, nil
 }
 
-func (p Player) SetRate(float64) error {
+func (p *Player) SetRate(float64) error {
 	return nil
 }
 
-func (p Player) Metadata() (types.Metadata, error) {
+func (p *Player) Metadata() (types.Metadata, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.metaData, nil
 }
-func (p Player) Volume() (float64, error) {
+func (p *Player) Volume() (float64, error) {
 	return 0, nil
 }
-func (p Player) SetVolume(in float64) error {
+func (p *Player) SetVolume(in float64) error {
 	return nil
 }
-func (p Player) Position() (int64, error) {
+func (p *Player) Position() (int64, error) {
 	return 0, nil
 }
-func (p Player) MinimumRate() (float64, error) {
+func (p *Player) MinimumRate() (float64, error) {
 	return 0, nil
 }
-func (p Player) MaximumRate() (float64, error) {
+func (p *Player) MaximumRate() (float64, error) {
 	return 0, nil
 }
-func (p Player) CanGoNext() (bool, error) {
+func (p *Player) CanGoNext() (bool, error) {
 	return false, nil
 }
-func (p Player) CanGoPrevious() (bool, error) {
+func (p *Player) CanGoPrevious() (bool, error) {
 	return false, nil
 }
-func (p Player) CanPlay() (bool, error) {
+func (p *Player) CanPlay() (bool, error) {
 	return true, nil
 }
-func (p Player) CanPause() (bool, error) {
+func (p *Player) CanPause() (bool, error) {
 	return true, nil
 }
-func (p Player) CanSeek() (bool, error) {
+func (p *Player) CanSeek() (bool, error) {
 	return false, nil
 }
-func (p Player) CanControl() (bool, error) {
+func (p *Player) CanControl() (bool, error) {
 	return true, nil
 }
 
@@ -168,7 +207,6 @@ func (p Player) CanControl() (bool, error) {
 func Start(ctx *context.AppContext) {
 	metaData := types.Metadata{
 		TrackId:        "/TrackList/Track1",
-		Length:         100,
 		ArtUrl:         "",
 		Album:          "",
 		AlbumArtist:    []string{},
@@ -191,27 +229,29 @@ func Start(ctx *context.AppContext) {
 		UserRating:     0.0,
 	}
 	r := Root{}
-	p := Player{ctx: ctx, metaData: metaData}
+	p := &Player{ctx: ctx, metaData: metaData, status: types.PlaybackStatusStopped}
 	s = server.NewServer("di-tui", r, p)
 	go s.Listen()
+
+	// Playback can be started, paused and stopped from the TUI without going
+	// through the MPRIS methods above, and the track changes on its own, so
+	// poll the application state and announce it -- but only when something
+	// actually changed. Unconditional PropertiesChanged signals every second
+	// make some desktops (gnome-shell) stall on every one of them.
 	go func() {
-		for {
-			<-time.Tick(1 * time.Second)
-			if !p.ctx.IsPlaying {
+		for range time.Tick(1 * time.Second) {
+			if s.Conn == nil {
 				continue
 			}
 
-			if s.Conn == nil {
-				return
+			if p.ctx.IsPlaying {
+				p.emitStatus(types.PlaybackStatusPlaying)
+			} else if status, _ := p.PlaybackStatus(); status == types.PlaybackStatusPlaying {
+				p.emitStatus(types.PlaybackStatusPaused)
 			}
-			p.metaData.Artist = []string{p.ctx.View.NowPlaying.Track.Artist}
-			p.metaData.Title = p.ctx.View.NowPlaying.Track.Title
-			props := map[string]any{
-				"Metadata": p.metaData.MakeMap(),
-			}
-			s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", props, []string{})
 
-			s.Conn.Emit("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties.PropertiesChanged", "org.mpris.MediaPlayer2.Player", statusPlaying, []string{})
+			track := p.ctx.View.NowPlaying.Track
+			p.emitMetadata(track.Artist, track.Title)
 		}
 	}()
 }

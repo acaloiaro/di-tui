@@ -41,7 +41,7 @@
       default = devenv.lib.mkShell {
         inherit inputs pkgs;
         modules = [
-          {
+          ({config, ...}: {
             languages.go = {
               enable = true;
               package = pkgs.go_1_22;
@@ -53,7 +53,26 @@
               pre-commit
               git-chglog
               svu
+              hugo
             ];
+
+            scripts.run-website = {
+              description = "Run the website locally with live reload";
+              exec = ''
+                hugo server --source "$(git rev-parse --show-toplevel)/site" "$@"
+              '';
+            };
+
+            enterShell = let
+              toolRows =
+                pkgs.lib.concatStringsSep "\n"
+                (pkgs.lib.mapAttrsToList (name: tool: "${name}\t${tool.description}") config.scripts);
+            in ''
+              if [ -t 2 ]; then
+                echo "Available commands:" >&2
+                ${pkgs.util-linuxMinimal}/bin/column -t -s $'\t' <<< ${pkgs.lib.escapeShellArg toolRows} | ${pkgs.gnused}/bin/sed 's/^/  /' >&2
+              fi
+            '';
 
             pre-commit.hooks.gomod2nix = {
               enable = true;
@@ -63,7 +82,7 @@
               pass_filenames = false;
               entry = "${gomod2nix.legacyPackages.${system}.gomod2nix}/bin/gomod2nix";
             };
-          }
+          })
         ];
       };
     });

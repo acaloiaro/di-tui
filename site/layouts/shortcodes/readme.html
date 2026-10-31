@@ -1,0 +1,25 @@
+{{- $readme := resources.Get "readme/README.md" -}}
+{{- if not $readme -}}
+  {{- errorf "readme: README.md is not mounted at assets/readme; see module.mounts in hugo.toml" -}}
+{{- end -}}
+{{- $text := printf "\n%s\n" (replace $readme.Content "\r\n" "\n") -}}
+{{- $name := .Get "section" -}}
+{{- $withHeading := eq (string (.Get "heading")) "true" -}}
+{{- if not $name -}}
+  {{- $preamble := index (index (findRESubmatch `(?s)\A(.*?)\n## ` $text 1) 0) 1 -}}
+  {{- $preamble = replaceRE `\A\n# [^\n]*\n` "\n" $preamble -}}
+  {{- $preamble = replaceRE `---\n\nIf you're seeing this on Github[^\n]*\n\n` "" $preamble -}}
+  {{- $preamble | safeHTML -}}
+{{- else -}}
+  {{- $quoted := replaceRE `[.+*?()|\[\]{}^$\\]` `\$0` $name -}}
+  {{- $pattern := printf `(?s)\n(## %s[ \t]*\n.*?)(?:\n## |\z)` $quoted -}}
+  {{- $matches := findRESubmatch $pattern $text 1 -}}
+  {{- if not $matches -}}
+    {{- errorf "readme: no '## %s' section in README.md" $name -}}
+  {{- end -}}
+  {{- $section := index (index $matches 0) 1 -}}
+  {{- if not $withHeading -}}
+    {{- $section = replaceRE `\A## [^\n]*\n` "" $section -}}
+  {{- end -}}
+  {{- $section | safeHTML -}}
+{{- end -}}

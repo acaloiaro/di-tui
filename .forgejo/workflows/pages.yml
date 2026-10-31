@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - site/**
+      - README.md
       - .forgejo/workflows/pages.yml
   workflow_dispatch:
 
@@ -15,8 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: https://github.com/cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Build site
+        shell: bash -c "nix develop --impure -c bash -- {0}"
+        run: hugo --source site --minify
+
       - uses: https://codeberg.org/git-pages/action@v2
         with:
           site: https://${{ forgejo.repository_owner }}.pages.adriano.fyi/${{ forgejo.event.repository.name }}/
           token: ${{ forgejo.token }}
-          source: site/
+          source: site/public/

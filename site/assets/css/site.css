@@ -1,0 +1,5 @@
+@media screen and (min-width: 72em) {
+  :root {
+    --content-max-width: 70%;
+  }
+}

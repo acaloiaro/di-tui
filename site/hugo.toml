@@ -1,0 +1,45 @@
+baseURL = "https://me.pages.adriano.fyi/di-tui/"
+title = "di-tui"
+disableKinds = ["taxonomy", "term", "RSS"]
+
+[params]
+  mode = "toggle"
+  useCDN = false
+  description = "A simple terminal UI player for di.fm Premium"
+  og_image = "screenshot.png"
+  customcss = ["css/site.css"]
+
+[markup.highlight]
+  style = "monokai"
+  codeFences = true
+
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 2
+
+[[menus.main]]
+  name = "Home"
+  pageRef = "/"
+  weight = 1
+
+[[menus.main]]
+  name = "Docs"
+  pageRef = "/docs"
+  weight = 2
+
+[[menus.main]]
+  name = "Source"
+  url = "https://code.adriano.fyi/me/di-tui/"
+  weight = 3
+
+[module]
+  [[module.imports]]
+    path = "github.com/athul/archie"
+
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+
+  [[module.mounts]]
+    source = "../README.md"
+    target = "assets/readme/README.md"

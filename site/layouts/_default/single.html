@@ -1,0 +1,23 @@
+{{ define "main" }}
+<main>
+  <article>
+    <div class="post-container">
+      <div class="post-content">
+        <div class="title">
+          <h1 class="title">{{ .Title }}</h1>
+        </div>
+        <section class="body">
+          {{ .Content }}
+        </section>
+      </div>
+
+      {{ if .Params.toc }}
+      <div class="toc">
+        <strong>Contents:</strong>
+        {{ .TableOfContents }}
+      </div>
+      {{ end }}
+    </div>
+  </article>
+</main>
+{{ end }}

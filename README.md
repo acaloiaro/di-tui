@@ -4,7 +4,7 @@ A simple terminal UI player for [di.fm Premium](http://di.fm)
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/di-tui.svg)](https://repology.org/project/di-tui/versions)
 
-![App Screenshot](site/screenshot.png)
+![App Screenshot](site/static/screenshot.png)
 
 ---
 

@@ -9,6 +9,15 @@ disableKinds = ["taxonomy", "term", "RSS"]
   og_image = "screenshot.png"
   customcss = ["css/site.css"]
 
+  [params.transclude]
+    file = "readme/README.md"
+
+    [params.transclude.replace]
+      github-notice = { pattern = '---\n\nIf you.re seeing this on Github[^\n]*\n\n' }
+
+    [params.transclude.rewrite]
+      "site/static/" = ""
+
 [markup.highlight]
   style = "monokai"
   codeFences = true
@@ -35,6 +44,9 @@ disableKinds = ["taxonomy", "term", "RSS"]
 [module]
   [[module.imports]]
     path = "github.com/athul/archie"
+
+  [[module.imports]]
+    path = "code.adriano.fyi/me/hugo-transclude"
 
   [[module.mounts]]
     source = "assets"

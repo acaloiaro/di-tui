@@ -1,6 +1,2 @@
-{{- $destination := .Destination -}}
-{{- if strings.HasPrefix $destination "site/static/" -}}
-  {{- $destination = relURL (strings.TrimPrefix "site/static/" $destination) -}}
-{{- end -}}
-<img src="{{ $destination | safeURL }}" alt="{{ .PlainText }}"{{ with .Title }} title="{{ . }}"{{ end }}>
+<img src="{{ partial "transclude/rewrite.html" .Destination | safeURL }}" alt="{{ .PlainText }}"{{ with .Title }} title="{{ . }}"{{ end }}>
 {{- /**/ -}}

@@ -3,8 +3,8 @@ title: "di-tui"
 description: "A simple terminal UI player for di.fm Premium"
 ---
 
-{{% readme %}}
+{{% transclude replace="title,github-notice" %}}
 
-{{% readme section="Run / Install" heading="true" %}}
+{{% transclude section="Run / Install" heading="true" %}}
 
-{{% readme section="Dependencies" heading="true" %}}
+{{% transclude section="Dependencies" heading="true" %}}
